@@ -1,22 +1,29 @@
 run : main
 	./main.exe
 
-main : main.o square_multiply.o Dechiffrement.o Creation_des_cles.o
-	gcc -Wall -Wextra -std=c89 -pedantic -O2 -lgmp -o main.exe main.o square_multiply.o Dechiffrement.o Creation_des_cles.o
+main : main.o square_multiply.o chiffrement.o dechiffrement.o creation_des_cles.o miller_rabin.o
+	gcc -Wall -Wextra -std=c89 -pedantic -O2 -lgmp -o main.exe main.o square_multiply.o chiffrement.o dechiffrement.o creation_des_cles.o miller_rabin.o
 
-main.o : square_multiply.h Dechiffrement.h Creation_des_cles.h
+main.o : chiffrement.h dechiffrement.h creation_des_cles.h miller_rabin.h
 	gcc -c main.c
 
 square_multiply.o : square_multiply.h
 	gcc -c square_multiply.c
 
-Dechiffrement.o : Dechiffrement.h
-	gcc -c Dechiffrement.c
+miller_rabin.o : miller_rabin.h square_multiply.h
+	gcc -c miller_rabin.c
 
-Creation_des_cles.o : Creation_des_cles.h
-	gcc -c Creation_des_cles.c
+chiffrement.o : chiffrement.h square_multiply.h
+	gcc -c chiffrement.c
+
+dechiffrement.o : dechiffrement.h square_multiply.h
+	gcc -c dechiffrement.c
+
+creation_des_cles.o : creation_des_cles.h square_multiply.h
+	gcc -c creation_des_cles.c
 
 clean :
-	rm -vf *.exe
-	rm -vf *.o
-	clear
+	@clear
+	@rm -vf *.exe
+	@rm -vf *.o
+	
