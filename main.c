@@ -7,14 +7,6 @@
 #include "chiffrement.h"
 #include "dechiffrement.h"
 #include "creation_des_cles.h"
-#include "miller_rabin.h"
-
-//différentes tailles de bits prédéfinies pour p et q
-#define PRIME_LONG_SIZE 1536    //RSA 3072 bits
-#define PRIME_MEDIUM_SIZE 1024  //RSA 2048 bits
-#define PRIME_LOW_SIZE 512      //RSA 1024 bits
-//nombre de bits qui seront utilisés pour p et q
-#define PRIME_NUMBER_SIZE 512
  
 int main(int argc, char const *argv[])
 {    
@@ -35,9 +27,7 @@ int main(int argc, char const *argv[])
     gmp_printf("\nmessage d'origine : %Zd\n\n", m);
 
     //génération de n, p, q
-    generer_un_nombre_premier(p, PRIME_NUMBER_SIZE);
-    generer_un_nombre_premier(q, PRIME_NUMBER_SIZE);
-    mpz_mul(n, p, q);
+    generer_npq(n, p, q);
     
     //génération de phi de n
     phi(p, q, phi_n);
