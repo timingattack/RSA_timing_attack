@@ -8,9 +8,9 @@
 #include "square_multiply.h"
 
 //quantité de nombres premiers utilisés comme base dans l'algorithme de Miller-Rabin
-#define BASES_NUMBERS 167
+#define BASES_NUMBERS 168
 //les nombres premiers
-int bases_miller_rabin[BASES_NUMBERS] = {
+int bases_miller_rabin[BASES_NUMBERS] = {2,
 		3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89
 		,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173
 		,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263
@@ -71,7 +71,7 @@ static bool est_compose(const mpz_t a, const mpz_t d, const mpz_t n, const mpz_t
 * - condition n ≥ 3 et n est impair
 * - formule : n - 1 = 2^s * d  , avec s > 0
 */
-bool temoin_de_miller(const mpz_t n, const mpz_t a)
+static bool temoin_de_miller(const mpz_t n, const mpz_t a)
 {
 	bool booleen;
 	mpz_t z, s, d, andr, msk;
@@ -117,7 +117,7 @@ bool temoin_de_miller(const mpz_t n, const mpz_t a)
 //test si n est premier
 bool miller_rabin(const mpz_t n)
 {
-	int i;
+	int i, j;
 	mpz_t a;
 	mpz_init(a);
 
@@ -156,15 +156,16 @@ bool miller_rabin(const mpz_t n)
 	return true;	//n est premier
 }
 
+//génère un nombre premier sur b bits
 void generer_un_nombre_premier(mpz_t p, int b)
 {
-	int i, j, essais;
-	double b_value;
-	char* random_number = malloc(sizeof(char) * b + 1); //chaine de b caractère
+	int i = 0, j;
+	double b_value, limit_value;
+	char* random_number = malloc(sizeof(char) * b + 1); //chaine de b caractères
 	
 	if(!random_number)
     {
-        fprintf(stderr, "Erreur: échec du malloc random_number.\n");
+        fprintf(stderr, "Erreur: échec du malloc pour la génération du nombre premier.\n");
         exit(2);
     }
 
@@ -173,40 +174,41 @@ void generer_un_nombre_premier(mpz_t p, int b)
 	{
 		free(random_number);
 
-		return;
-	}
+		fprintf(stderr, "Erreur: le nombre de bit pour générer le nombre premier est insuffisant.\n");
 
-	//nombres de tentatives pour générer un nombre premier aléatoire
-	essais = 100 * (log2(b) + 1);
+		exit(4);
+	}
 	
-	i = essais;
-	while(i)
+	while(true)
 	{
+		i++;
 		//réinitialise la chaine de bits
 		strncpy(random_number,"\0", strlen(random_number));
 
 		//génère un nombre aléatoire entre 0 et 2^b - 1
 		strncat(random_number, "1", 1);	//met le bit de poids le plus fort à 1
-		for(j = 1; j < b - 1; j++)	//remplie aléatoirement la chaine de 0 ou 1
+		for(j = 1; j < b - 1; j++)		//remplie aléatoirement la chaine de 0 ou 1
 		{
 			//nombre aléatoire entre 0 et 1
 			b_value = (double) random() / RAND_MAX;
+			//limite d'acceptation aléatoire pour les bits à 1
+			limit_value = (double) random() / RAND_MAX;
 			
-			//si nombre < 0.5 alors b = 0
-			//sinon si ≥ 0.5 alors b = 1
-			if(b_value < 0.5)
+			//si nombre < limite alors b = 0
+			//sinon si ≥ limite alors b = 1
+			if(b_value < limit_value)
 			{
 				strncat(random_number, "0", 1);
 			}
-			else {
+			else if(b_value >= limit_value)
+			{
 				strncat(random_number, "1", 1);
 			}
 
-			//printf("rand num %s\n", random_number); //décommenter pour afficher la probabilité pour que le bit soit égale à 0 ou 1
+			//printf("bit %s avec proba de %f\n", random_number, limit_value); //décommenter pour afficher la probabilité pour que le bit soit égale à 0 ou 1
 		}
-
-		//met le bit de poids le plus faible à 1
-		strncat(random_number, "1", 1);	
+		strncat(random_number, "1", 1);	//met le bit de poids le plus faible à 1
+		
 		//printf("resultat du binaire = %s\n", random_number);	//décommenter pour afficher le résultat en binaire
 
 		//convertie le nombre aléatoire représenté en binaire en nombre décimal
@@ -218,7 +220,7 @@ void generer_un_nombre_premier(mpz_t p, int b)
 		{
 			free(random_number);
 
-			gmp_printf("le nombre %Zd est premier (trouvé après %d essais)\n\n", p, essais - i);
+			//gmp_printf("le nombre %Zd est premier (trouvé après %d essais)\n\n", p, i);	//décommenter pour afficher le résultat
 	
 			return;
 		}
@@ -226,12 +228,20 @@ void generer_un_nombre_premier(mpz_t p, int b)
 		//printf("\n");	//à décommenter lors de l'affichage
 
 		mpz_init(p);
-		i--;
+
+		//décommenter pour avoir une limite de tentative de génération du nombre premier
+		/*
+		if(i >= b * 100)
+		{
+			break;
+		}
+		*/
 	}
+	//arrive ici uniquement que la limite de tentative de génération (si activée) à été atteinte
 
 	free(random_number);
 
-	fprintf(stderr,"la génération du nombre premier à échoué après %d essais\n\n", essais);
+	fprintf(stderr,"la génération du nombre premier à échoué après %d essais\n\n", i);
 	
-	return;	//le nombre maximum de tentative de génération à été atteint
+	exit(3);	//le nombre maximum de tentative de génération à été atteint, on arrête le programme
 }

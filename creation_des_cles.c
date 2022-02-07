@@ -10,7 +10,7 @@
 #define PRIME_MEDIUM_SIZE 1024  //RSA 2048 bits
 #define PRIME_LOW_SIZE 512      //RSA 1024 bits
 //nombre de bits qui seront utilisés pour p et q
-#define PRIME_NUMBER_SIZE 512
+#define PRIME_NUMBER_SIZE PRIME_LONG_SIZE
 
 unsigned int pgcd(unsigned int a, unsigned int b)
 {
@@ -22,11 +22,30 @@ unsigned int pgcd(unsigned int a, unsigned int b)
 
 void generer_npq(mpz_t n, mpz_t p, mpz_t q)
 {
-    generer_un_nombre_premier(p, PRIME_NUMBER_SIZE);
-    generer_un_nombre_premier(q, PRIME_NUMBER_SIZE);
-    mpz_mul(n, p, q);
-}
+    if(PRIME_NUMBER_SIZE < 3)
+    {
+       generer_un_nombre_premier(p, 3);
+       generer_un_nombre_premier(q, 3);
+    } else {
+        generer_un_nombre_premier(p, PRIME_NUMBER_SIZE); 
+        generer_un_nombre_premier(q, PRIME_NUMBER_SIZE);
+    }
 
+    if(mpz_cmp(p, q))
+    {
+        mpz_mul(n, p, q);
+        
+        return;     
+    } else {
+        mpz_init(n);
+        mpz_init(p);
+        mpz_init(q);
+
+        generer_npq(n, p, q);
+
+        return;
+    }
+}
 
 void generer_exposant_public(const mpz_t phi_n, mpz_t e)
 {
@@ -79,13 +98,35 @@ void phi(const mpz_t p, const mpz_t q, mpz_t phi)
    mpz_clear(tmp_q);
 }
 
-void generer_exposant_privee(const mpz_t e, const mpz_t phi, mpz_t d)
+
+void generer_exposant_privee(const mpz_t e, const mpz_t phi_n, mpz_t d)
 {
-   mpz_t inv;
-   mpz_init(inv); //inverse modulaire
-   mpz_set_si(inv, -1);
+   mpz_t pgcd_r;
+   mpz_init(pgcd_r);
 
-   square_and_multiply(e, inv, phi, d);
+   //si l'inverse modulaire n'existe pas on arrête le programme
+   if(!(mpz_invert(d, e, phi_n)))
+   {
+       mpz_init(d);
+        
+       mpz_clear(pgcd_r);
 
-   mpz_clear(inv);
+       fprintf(stderr,"Erreur: l'inverse modulaire de l'exposant public n'existe pas.\n");
+    
+       exit(5);
+   } else {
+       mpz_gcd(pgcd_r, e, d);
+       
+       //si le PGCD(e,d) ≠ 1 on arrête le programme
+       if(mpz_cmp_ui(pgcd_r, 1))
+       {
+           mpz_init(d);
+        
+           mpz_clear(pgcd_r);
+
+           fprintf(stderr,"Erreur: l'inverse modulaire de l'exposant public n'est pas premier avec l'exposant privé d.\n");
+
+           exit(6);
+       }
+   }
 }
