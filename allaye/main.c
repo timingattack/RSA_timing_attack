@@ -14,11 +14,11 @@ int main (){
     gmp_randseed_ui(state,grain);
     gen_random(m, state, 512);
     printf("message aléatoire = "); mpz_out_str(stdout, 16, m); printf("\n");
-    chiffrement(m,1024);
+    chiffrement(m,1024,1);
     printf("chiffrement       = "); mpz_out_str(stdout, 16, m); printf("\n");
-    dechiffrement(m,1024);
+    dechiffrement(m,1024,1);
     printf("dechiffrement     = "); mpz_out_str(stdout, 16, m); printf("\n");
-    signature(m,1024);
+    signature(m,1024,1);
     printf("signature         = "); mpz_out_str(stdout, 16, m); printf("\n");
     mpz_clear(m);
     return 0;
