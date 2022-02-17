@@ -1,29 +1,81 @@
-run : main
-	./main.exe
+# Variables
+CC=gcc
+CFLAGS=-Wall -Wextra -std=c99 -pedantic -O2
+LDFLAGS=-lgmp
+OFLAGS=-I inc
+EXEC=main.exe
+SRC=main.c square_multiply.c chiffrement.c dechiffrement.c creation_des_cles.c miller_rabin.c
+OBJ=$(SRC:.c=.o)
+DIR_EXEC=bin
+DIR_OBJ=obj
+DIR_SRC=src
+DIR_HEADERS=inc
+BUILD_DIR=$(DIR_EXEC) $(DIR_OBJ)
 
-main : main.o square_multiply.o chiffrement.o dechiffrement.o creation_des_cles.o miller_rabin.o
-	gcc -Wall -Wextra -std=c89 -pedantic -O2 -lgmp -o main.exe main.o square_multiply.o chiffrement.o dechiffrement.o creation_des_cles.o miller_rabin.o
+# Spécifie le chemin où trouver les fichiers .exe,.o,.c,.h
+vpath %.exe bin
+vpath %.o obj
+vpath %.c src
+vpath %.h inc
 
-main.o : chiffrement.h dechiffrement.h creation_des_cles.h
-	gcc -c main.c
+# Lance toutes les étapes
+all: dirs
+	@./bin/main.exe
 
-square_multiply.o : square_multiply.h
-	gcc -c square_multiply.c
+# Lance le test pour montgomery
+test: checkdirs main_montgomery.exe
+	@./bin/main_montgomery.exe
+	
+# Lance la création des dossiers bin et obj et l'édition de liens
+dirs: checkdirs $(EXEC)
 
-miller_rabin.o : miller_rabin.h square_multiply.h
-	gcc -c miller_rabin.c
+# Créer les répertoires s'ils ne sont pas déjà créés.
+checkdirs: $(BUILD_DIR)
 
-chiffrement.o : chiffrement.h square_multiply.h
-	gcc -c chiffrement.c
+# Construit les dossiers bin et obj
+$(BUILD_DIR):
+	@mkdir -pv $@
 
-dechiffrement.o : dechiffrement.h square_multiply.h
-	gcc -c dechiffrement.c
+# Edition de liens
+main.exe: $(OBJ)
+	@$(CC) $(LDFLAGS) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^)
 
-creation_des_cles.o : creation_des_cles.h square_multiply.h miller_rabin.h
-	gcc -c creation_des_cles.c
+main_montgomery.exe: main_montgomery.o montgomery.o square_multiply.o dechiffrement.o creation_des_cles.o miller_rabin.o
+	@$(CC) $(LDFLAGS) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^)
 
-clean :
+# Dépendance des fichiers .o
+main.o: chiffrement.h dechiffrement.h creation_des_cles.h
+
+square_multiply.o: square_multiply.h
+
+miller_rabin.o: miller_rabin.h square_multiply.h
+
+chiffrement.o: chiffrement.h square_multiply.h miller_rabin.h
+
+dechiffrement.o: dechiffrement.h square_multiply.h
+
+creation_des_cles.o: creation_des_cles.h square_multiply.h miller_rabin.h
+
+montgomery.o: montgomery.h
+
+main_montgomery.o: montgomery.h square_multiply.h dechiffrement.h creation_des_cles.h
+
+# Compilation
+%.o: %.c
+	@$(CC) $(OFLAGS) $(CFLAGS) -c $< -o $(DIR_OBJ)/$@
+
+.PHONY: clean
+
+# Supprime les dossiers bin et obj et tout leurs contenus
+clean:
 	@clear
-	@rm -vf *.exe
-	@rm -vf *.o
+	@echo " "
+	@rm -rfv $(DIR_EXEC)/*
+	@rm -dfv $(DIR_EXEC)
+	@rm -rfv $(DIR_OBJ)/*
+	@rm -dfv $(DIR_OBJ)
+	@echo "\r\n####################\r\n"
+	@ls -G
+	@echo "\r\n####################\r\n"
+	@ls -lhFUGS $(DIR_SRC) $(DIR_HEADERS)
 	

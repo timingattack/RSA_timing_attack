@@ -8,9 +8,9 @@
 #include "square_multiply.h"
 
 //quantité de nombres premiers utilisés comme base dans l'algorithme de Miller-Rabin
-#define BASES_NUMBERS 167
+#define BASES_NUMBERS 168
 //les nombres premiers
-int bases_miller_rabin[BASES_NUMBERS] = {
+int bases_miller_rabin[BASES_NUMBERS] = {2,
 		3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89
 		,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173
 		,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263
@@ -71,7 +71,7 @@ static bool est_compose(const mpz_t a, const mpz_t d, const mpz_t n, const mpz_t
 * - condition n ≥ 3 et n est impair
 * - formule : n - 1 = 2^s * d  , avec s > 0
 */
-bool temoin_de_miller(const mpz_t n, const mpz_t a)
+static bool temoin_de_miller(const mpz_t n, const mpz_t a)
 {
 	bool booleen;
 	mpz_t z, s, d, andr, msk;
@@ -100,8 +100,6 @@ bool temoin_de_miller(const mpz_t n, const mpz_t a)
  		mpz_add_ui(s, s, 1);		//on incrémente s de +1 à chaque fois que l'on effectue un décallage à droite
  		mpz_and(andr, d, msk);		//on détermine la valuer du bit de poids le plus faible (andr = 1 si le bit égale à 1, 0 sinon)
  	}
-	
-	//gmp_printf("z = %Zd, s = %Zd, d = %Zd\n", z, s, d);	//décommenter pour afficher z, s et d
 
  	//vrai si n est composé,
  	//faux si n est SPRP (fortement premier)
@@ -126,19 +124,20 @@ bool miller_rabin(const mpz_t n)
 	{
 		mpz_clear(a);
 
-		return (mpz_cmp_ui(n, 2) == 0);	//retourne vrai si n = 2
+		//retourne vrai si n = 2, faux sinon
+		return (mpz_cmp_ui(n, 2) == 0);
 	}
 	
 	for(i = 0; i < BASES_NUMBERS; i++)
 	{
 		mpz_set_ui(a, bases_miller_rabin[i]);
 
-		if(mpz_cmp(n, a) == 0)
+		/*if(mpz_cmp(n, a) == 0)
 		{
 			mpz_clear(a);
 
-			return true;
-		}
+			return true;	//n est premier
+		}*/
 		
 		//test si n est composé
 		if(temoin_de_miller(n, a))
@@ -156,82 +155,90 @@ bool miller_rabin(const mpz_t n)
 	return true;	//n est premier
 }
 
-void generer_un_nombre_premier(mpz_t p, int b)
+//ajoute un bit aléatoire dans la chaine
+void random_bit(char** random_number, double bit_value, double limit_value)
 {
-	int i, j, essais;
-	double b_value;
-	char* random_number = malloc(sizeof(char) * b + 1); //chaine de b caractère
+	//nombre aléatoire entre 0 et 1
+	bit_value = (double) random() / RAND_MAX;
+	//limite d'acceptation aléatoire pour les bits à 1
+	limit_value = (double) random() / RAND_MAX;
+	
+	//si nombre < limite alors b = 0
+	//sinon si ≥ limite alors b = 1
+	if(bit_value < limit_value)
+	{
+		strncat(*random_number, "0", 1);
+	}
+	else if(bit_value >= limit_value)
+	{
+		strncat(*random_number, "1", 1);
+	}
+}
+
+//génère un nombre premier sur b bits
+void generer_un_nombre_premier(mpz_t p, int bits)
+{
+	int i = 0, j;
+	double b_value = 0, limit_value = 0;
+	char* random_number = malloc(sizeof(char) * bits + 1);
 	
 	if(!random_number)
     {
-        fprintf(stderr, "Erreur: échec du malloc random_number.\n");
+        fprintf(stderr, "Erreur: échec du malloc pour la génération du nombre premier.\n");
+
+        free(random_number);
+
         exit(2);
     }
 
 	//si le nombre est sur 2 bits on sort
-	if(b < 2)
+	if(bits < 2)
 	{
+		fprintf(stderr, "Erreur: le nombre de bit pour générer le nombre premier est insuffisant.\n");
+
 		free(random_number);
 
-		return;
+		exit(3);
 	}
-
-	//nombres de tentatives pour générer un nombre premier aléatoire
-	essais = 100 * (log2(b) + 1);
 	
-	i = essais;
-	while(i)
+	while(true)
 	{
-		//réinitialise la chaine de bits
+		i++;
+
+		//réinitialise la chaine de bits à chaque essaie
 		strncpy(random_number,"\0", strlen(random_number));
 
-		//génère un nombre aléatoire entre 0 et 2^b - 1
+		//génère un nombre aléatoire entre 2^(b - 1) + 1 et 2^(b) - 1
 		strncat(random_number, "1", 1);	//met le bit de poids le plus fort à 1
-		for(j = 1; j < b - 1; j++)	//remplie aléatoirement la chaine de 0 ou 1
+		for(j = 1; j < bits - 1; j++)		//remplie aléatoirement la chaine de 0 ou 1
 		{
-			//nombre aléatoire entre 0 et 1
-			b_value = (double) random() / RAND_MAX;
-			
-			//si nombre < 0.5 alors b = 0
-			//sinon si ≥ 0.5 alors b = 1
-			if(b_value < 0.5)
-			{
-				strncat(random_number, "0", 1);
-			}
-			else {
-				strncat(random_number, "1", 1);
-			}
-
-			//printf("rand num %s\n", random_number); //décommenter pour afficher la probabilité pour que le bit soit égale à 0 ou 1
+			random_bit(&random_number, b_value, limit_value);
 		}
-
-		//met le bit de poids le plus faible à 1
-		strncat(random_number, "1", 1);	
-		//printf("resultat du binaire = %s\n", random_number);	//décommenter pour afficher le résultat en binaire
+		strncat(random_number, "1", 1);	//met le bit de poids le plus faible à 1
 
 		//convertie le nombre aléatoire représenté en binaire en nombre décimal
 		mpz_set_str(p, random_number, 2);
-		//gmp_printf("resultat décimal = %Zd\n", p);	//décommenter pour afficher le résultat en décimal
 
 		//vérifie si le nombre aléatoire est premier
 		if(miller_rabin(p))
 		{
 			free(random_number);
-
-			gmp_printf("le nombre %Zd est premier (trouvé après %d essais)\n\n", p, essais - i);
 	
 			return;
 		}
 
-		//printf("\n");	//à décommenter lors de l'affichage
-
 		mpz_init(p);
-		i--;
+
+		//limite de tentative de génération du nombre premier
+		if(i >= bits * 100)
+		{
+			break;
+		}
 	}
 
-	free(random_number);
-
-	fprintf(stderr,"la génération du nombre premier à échoué après %d essais\n\n", essais);
+	fprintf(stderr,"la génération du nombre premier à échoué après %d essais\n\n", i);
 	
-	return;	//le nombre maximum de tentative de génération à été atteint
+	free(random_number);
+	
+	exit(4);
 }

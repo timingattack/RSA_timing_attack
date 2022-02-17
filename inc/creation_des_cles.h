@@ -4,9 +4,9 @@
 
 unsigned int pgcd(const unsigned int a, const unsigned int b);
 void generer_npq(mpz_t n, mpz_t p, mpz_t q);
-//pour chiffrer
+//-------chiffrement-------
 void generer_exposant_public(const mpz_t phi_n, mpz_t e);
-//pour déchiffrement
+//------déchiffrement------
 void phi(const mpz_t p, const mpz_t q, mpz_t phi);
 void generer_exposant_privee(const mpz_t e, const mpz_t phi, mpz_t d);
 
