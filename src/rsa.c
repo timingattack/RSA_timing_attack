@@ -58,8 +58,8 @@ void run_rsa()
     srandom(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
 
     //message clair aléatoire
-    mpz_set_ui(m, 100/*(unsigned long int) random()*/);
-    //gmp_printf("\nmessage d'origine : %Z0X\n", m);
+    mpz_set_ui(m, (unsigned long int) random());
+    gmp_printf("\nmessage d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(ms, m);
 
@@ -137,8 +137,8 @@ void run_rsa_montgomery()
     srandom(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
 
     //message clair aléatoire
-    mpz_set_ui(m, 100/*(unsigned long int) random()*/);
-    //gmp_printf("\nmessage d'origine : %Z0X\n", m);
+    mpz_set_ui(m, (unsigned long int) random());
+    gmp_printf("\nmessage d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(ms, m);
 
