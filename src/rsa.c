@@ -1,15 +1,17 @@
+#define _GNU_SOURCE //fix warning implicit declaration
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <gmp.h>
+#include <string.h>
 #include <unistd.h>
+#include <math.h>
+#include <gmp.h>
+#include "temps.h"
 #include <time.h>
 #include <sys/time.h>
-#include <math.h>
-#include <string.h>
 #include "chiffrement.h"
 #include "dechiffrement.h"
 #include "creation_des_cles.h"
-#include "temps.h"
 #include "rsa.h"
 
 static void choix_mode_rsa(char* choix)
@@ -55,10 +57,10 @@ void run_rsa()
     mpz_init(s);        //signature : µ(m)^(d) mod n
     mpz_init(ms);       //PKCS#1 signature : µ(m)
 
-    srandom(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
+    srand(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
 
     //message clair aléatoire
-    mpz_set_ui(m, (unsigned long int) random());
+    mpz_set_ui(m, (unsigned long int) rand());
     gmp_printf("\nmessage d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(ms, m);
@@ -134,10 +136,10 @@ void run_rsa_montgomery()
     mpz_init(v);
     mpz_init(pgcd_bezout);
 
-    srandom(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
+    srand(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
 
     //message clair aléatoire
-    mpz_set_ui(m, (unsigned long int) random());
+    mpz_set_ui(m, (unsigned long int) rand());
     gmp_printf("\nmessage d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(ms, m);

@@ -136,9 +136,9 @@ bool miller_rabin(const mpz_t n)
 void random_bit(char** random_number, double bit_value, double limit_value)
 {
 	//nombre aléatoire entre 0 et 1
-	bit_value = (double) random() / RAND_MAX;
+	bit_value = (double) rand() / RAND_MAX;
 	//limite d'acceptation aléatoire pour les bits à 1
-	limit_value = (double) random() / RAND_MAX;
+	limit_value = (double) rand() / RAND_MAX;
 	
 	//si nombre < limite alors b = 0
 	//sinon si ≥ limite alors b = 1

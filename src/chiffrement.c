@@ -72,9 +72,9 @@ static void padding_chiffrement(mpz_t m)
             {
                random_bit(&byte, bit_value, limit_value);
             }
-         } while(strncmp(byte,"00000000\0", 9) == 0);
+         } while(strncmp(byte,"00000000", BYTE_SIZE) == 0);
 
-         strncat(random_number, byte, strlen(byte));
+         strncat(random_number, byte, BYTE_SIZE);
          continue;
       }
       //#1 octet Ø2
@@ -144,24 +144,24 @@ static void padding_signature(mpz_t m)
       //1 octet ØØ
       if(i == 10)
       {
-         strncat(random_number, "00", 1);
+         strncat(random_number, "00", 2);
          continue;
       }
       //8 octets FF
       if(1 < i && i < 10)
       {
-         strncat(random_number, "FF", 1);
+         strncat(random_number, "FF", 2);
          continue;
       }
       //#1 octet Ø1
       if(i == 1)
       {
-         strncat(random_number, "01", 1);
+         strncat(random_number, "01", 2);
          continue;
       }
       //#1 octet ØØ
       if(i == 0)
-         strncat(random_number, "00", 1);
+         strncat(random_number, "00", 2);
    }
 
    free(random_number);
