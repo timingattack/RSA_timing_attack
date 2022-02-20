@@ -1,7 +1,12 @@
 #ifndef _TEMPS_H_
 #define _TEMPS_H_
+
+#define _GNU_SOURCE	//fix warning implicit declaration
+
 #include <sys/time.h>
 #include <time.h>
+
+struct timespec;	//fix warning scope
 
 void temps_reel(struct timespec *t);
 void temps_cpu(clock_t *t);
