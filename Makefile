@@ -38,7 +38,7 @@ $(BUILD_DIR):
 
 # Edition de liens
 main.exe: $(OBJ)
-	@$(CC) $(LDFLAGS) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^)
+	@$(CC) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^) $(LDFLAGS)
 
 main_montgomery.exe: main_montgomery.o montgomery.o square_multiply.o dechiffrement.o creation_des_cles.o miller_rabin.o
 	@$(CC) $(LDFLAGS) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^)
