@@ -6,6 +6,7 @@
 #include <string.h>
 #include "miller_rabin.h"
 #include "square_multiply.h"
+#include "creation_des_cles.h"
 
 //quantité de nombres premiers utilisés comme base dans l'algorithme de Miller-Rabin
 #define BASES_NUMBERS 168
@@ -166,8 +167,8 @@ void generer_un_nombre_premier(mpz_t p, int bits)
         exit(2);
     }
 
-	//si le nombre est sur 2 bits on sort
-	if(bits < 2)
+	//si le nombre fait moins de 512 bits on sort
+	if(bits < PRIME_LOW_SIZE)
 	{
 		fprintf(stderr, "Erreur: le nombre de bit pour générer le nombre premier est insuffisant.\n");
 		free(random_number);

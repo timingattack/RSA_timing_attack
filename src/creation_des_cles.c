@@ -5,13 +5,8 @@
 #include "square_multiply.h"
 #include "miller_rabin.h"
 
-//différentes tailles de bits prédéfinies pour p et q
-#define DONT_DO_THIS 2048      //RSA 4096 bits
-#define PRIME_LONG_SIZE 1536    //RSA 3072 bits
-#define PRIME_MEDIUM_SIZE 1024  //RSA 2048 bits
-#define PRIME_LOW_SIZE 512      //RSA 1024 bits
 //nombre de bits qui seront utilisés pour p et q
-#define PRIME_NUMBER_SIZE PRIME_LOW_SIZE
+#define PRIME_NUMBER_SIZE prime_size
 
 void generer_npq(mpz_t n, mpz_t p, mpz_t q)
 {

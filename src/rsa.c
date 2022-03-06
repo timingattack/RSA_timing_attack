@@ -1,4 +1,4 @@
-#define _GNU_SOURCE //fix warning implicit declaration
+#define _GNU_SOURCE //fix timespec initialisation
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,8 +19,6 @@ static void choix_mode_rsa(char* choix)
     printf("\n\tChoisir le mode de RSA :\n\t- normal (1)\n\t- montgomery (2)\n");
     *choix = getchar();
     while(getchar() != '\n');
- 
-    printf("value : %c\n", *choix);
 
     if(*choix != '1' && *choix != '2')
     {
@@ -28,24 +26,71 @@ static void choix_mode_rsa(char* choix)
     }
 }
 
+static void choix_taille_module_rsa(char* choix)
+{
+    printf("\n\tChoisir la taille du module RSA :\n\t- petite : 1024 (1)\n\t- moyenne : 2048 (2)\n\t- grande : 3072 (3)\n\t- très grande : 4096 (4)\n");
+    *choix = getchar();
+    while(getchar() != '\n');
+
+    if(*choix != '1' && *choix != '2' && *choix != '3' && *choix != '4')
+    {
+        choix_mode_rsa(choix);
+    }
+}
+
 void run()
 {
-    char c = '\0';
-    choix_mode_rsa(&c);
+    char m = '\0';
+    char t;
+    choix_mode_rsa(&m);
+    choix_taille_module_rsa(&t);
 
-    if(c == '1')
+    if(t == '1')
     {
-        run_rsa();
+        printf("RSA-1024");
+        prime_size = PRIME_LOW_SIZE;
     }
-    if(c == '2')
+
+    if(t == '2')
     {
+        printf("RSA-2048");
+        prime_size = PRIME_MEDIUM_SIZE;
+    }
+
+    if(t == '3')
+    {
+        printf("RSA-3072");
+        prime_size = PRIME_LONG_SIZE;
+    }
+
+    if(t == '4')
+    {
+        printf("RSA-4096");
+        prime_size = PRIME_VERY_LONG_SIZE;
+    }
+
+    if(m == '1')
+    {
+        printf("-CLASSIQUE\n");
+        run_rsa();
+    }       
+    if(m == '2')
+    {
+        printf("-MONTGOMERY\n");
         run_rsa_montgomery();
     }
 }
 
 void run_rsa()
-{   
-    mpz_t  m, e, p , q, n, c, phi_n, d, s, ms;
+{
+    /*--------------------CHRONO--------------------------*/
+    clock_t t_cpu_deb = 0, t_cpu_fin = 0;
+    struct timespec t_reel_deb = {0,0}, t_reel_fin = {0,0};
+    double temps_reel_total = 0.0, temps_cpu_total = 0.0;
+    debut_chrono(&t_cpu_deb,&t_reel_deb);
+    /*----------------------------------------------------*/
+
+    mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm;
     mpz_init(m);        //clair
     mpz_init(e);        //exposant publique e : 1 < e < phi(n)
     mpz_init(p);        //nombre premier, premier facteur de n
@@ -54,8 +99,9 @@ void run_rsa()
     mpz_init(c);        //chiffré
     mpz_init(phi_n);    //phi(n) : (p - 1) * (q - 1)
     mpz_init(d);        //exposant privé : e^-1 mod ph(n)
+    mpz_init(pkcs_sgn); //PKCS#1 signature : µ(m)
     mpz_init(s);        //signature : µ(m)^(d) mod n
-    mpz_init(ms);       //PKCS#1 signature : µ(m)
+    mpz_init(hm);       //hash du message pour PKCS#1 signature : H(m)
 
     srand(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
 
@@ -63,14 +109,10 @@ void run_rsa()
     mpz_set_ui(m, (unsigned long int) rand());
     gmp_printf("\nmessage d'origine : %Z0X\n", m);
     mpz_set(s, m);
-    mpz_set(ms, m);
-
-/*---------------------------------------CHRONO-------------------------------------------------*/
-/**/clock_t t_cpu_deb = 0, t_cpu_fin = 0;                                                       //
-/**/struct timespec t_reel_deb = {0,0}, t_reel_fin = {0,0};                                     //
-/**/double temps_reel_total = 0.0, temps_cpu_total = 0.0;                                       //
-/**/debut_chrono(&t_cpu_deb,&t_reel_deb);                                                       //
-/*----------------------------------------------------------------------------------------------*/
+    mpz_set(hm, m);
+    hash(hm);
+    //gmp_printf("\nhash : %Z0X\n", hm);
+    mpz_set(pkcs_sgn, hm);
 
     //génération de n, p, q
     generer_npq(n, p, q);
@@ -93,18 +135,15 @@ void run_rsa()
     gmp_printf("\nchiffré : %Z0X\n", c);
 
     //signature de m
-    signature(ms, d, n, s);
+    signature(pkcs_sgn, d, n, s);
     //gmp_printf("\nsignature : %Z0X\n", s);
 
     //vérification de s
-    verification_signature(s, e, n, ms);
+    verification_signature(s, e, n, hm);
 
     //dechifrement de m
     dechiffrement_RSA(c, d, n, m);
     gmp_printf("\nmessage déchiffré : %Z0X\n", m);
-/*--------------------------------------FIN_CHRONO----------------------------------------------*/
-/**/fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);   //
-/*----------------------------------------------------------------------------------------------*/
 
     mpz_clear(m);
     mpz_clear(e);
@@ -114,13 +153,24 @@ void run_rsa()
     mpz_clear(c);
     mpz_clear(phi_n);
     mpz_clear(d);
+    mpz_clear(pkcs_sgn);
     mpz_clear(s);
-    mpz_clear(ms);
+    mpz_clear(hm);
+
+    /*-----------------------------------FIN_CHRONO-----------------------------------------*/
+    fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);
 }
 
 void run_rsa_montgomery()
 {
-    mpz_t  m, e, p , q, n, c, phi_n, d, s, ms, r, u, v, pgcd_bezout;
+    /*--------------------CHRONO--------------------------*/
+    clock_t t_cpu_deb = 0, t_cpu_fin = 0;
+    struct timespec t_reel_deb = {0,0}, t_reel_fin = {0,0};
+    double temps_reel_total = 0.0, temps_cpu_total = 0.0;
+    debut_chrono(&t_cpu_deb,&t_reel_deb);
+    /*----------------------------------------------------*/
+
+    mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout;
     mpz_init(m);        //clair
     mpz_init(e);        //exposant publique e : 1 < e < phi(n)
     mpz_init(p);        //nombre premier, premier facteur de n
@@ -129,8 +179,9 @@ void run_rsa_montgomery()
     mpz_init(c);        //chiffré
     mpz_init(phi_n);    //phi(n) : (p - 1) * (q - 1)
     mpz_init(d);        //exposant privé : e^-1 mod ph(n)
+    mpz_init(pkcs_sgn); //PKCS#1 signature : µ(m)
     mpz_init(s);        //signature : µ(m)^(d) mod n
-    mpz_init(ms);       //PKCS#1 signature : µ(m)
+    mpz_init(hm);       //hash du message pour PKCS#1 signature : H(m)
     mpz_init(r);
     mpz_init(u);
     mpz_init(v);
@@ -142,14 +193,10 @@ void run_rsa_montgomery()
     mpz_set_ui(m, (unsigned long int) rand());
     gmp_printf("\nmessage d'origine : %Z0X\n", m);
     mpz_set(s, m);
-    mpz_set(ms, m);
-
-/*---------------------------------------CHRONO-------------------------------------------------*/
-/**/clock_t t_cpu_deb = 0, t_cpu_fin = 0;                                                       //
-/**/struct timespec t_reel_deb = {0,0}, t_reel_fin = {0,0};                                     //
-/**/double temps_reel_total = 0.0, temps_cpu_total = 0.0;                                       //
-/**/debut_chrono(&t_cpu_deb,&t_reel_deb);                                                       //
-/*----------------------------------------------------------------------------------------------*/
+    mpz_set(hm, m);
+    hash(hm);
+    //gmp_printf("\nhash : %Z0X\n", hm);
+    mpz_set(pkcs_sgn, hm);
 
     //génération de n, p, q
     generer_npq(n, p, q);
@@ -173,22 +220,19 @@ void run_rsa_montgomery()
     bezout(r, n, u, v, pgcd_bezout);
     //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)  \n\n", r, u, n, v);
 
+    //chiffrement de m
     chiffrement_RSA_montgomery(m, e, n, c, v, r);
     gmp_printf("\nchiffré : %Z0X\n", c);
 
     //signature de m
-    signature(ms, d, n, s);
+    signature(pkcs_sgn, d, n, s);
     //gmp_printf("\nsignature : %Z0X\n", s);
 
     //vérification de s
-    verification_signature(s, e, n, ms);
+    verification_signature(s, e, n, hm);
 
     dechiffrement_RSA_montgomery(c, d, n, m, v, r);
     gmp_printf("\nmessage déchiffré : %Z0X\n", m);
-
-/*--------------------------------------FIN_CHRONO----------------------------------------------*/
-/**/fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);   //
-/*----------------------------------------------------------------------------------------------*/
 
     mpz_clear(m);
     mpz_clear(e);
@@ -198,10 +242,14 @@ void run_rsa_montgomery()
     mpz_clear(c);
     mpz_clear(phi_n);
     mpz_clear(d);
+    mpz_clear(pkcs_sgn);
     mpz_clear(s);
-    mpz_clear(ms);
+    mpz_clear(hm);
     mpz_clear(r);
     mpz_clear(u);
     mpz_clear(v);
     mpz_clear(pgcd_bezout);
+
+    /*-----------------------------------FIN_CHRONO-----------------------------------------*/
+    fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);
 }

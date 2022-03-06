@@ -4,6 +4,9 @@
 #include <gmp.h>
 #include <stdbool.h>
 #include <math.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/err.h>
 #include "chiffrement.h"
 #include "square_multiply.h"
 #include "miller_rabin.h"
@@ -21,9 +24,9 @@ static void padding_chiffrement(mpz_t m)
    double bit_value = 0, limit_value = 0;
    char* random_number = malloc(sizeof(char) * PADDING_SIZE + mpz_sizeinbase(m, 2) + 1); //chaine de 88 bits (11 octets) + bits du message
    char* byte = malloc(sizeof(char) * BYTE_SIZE + 1);   //chaine de 8 bits (1 octet)
-   char* tmp = malloc(mpz_sizeinbase(m, 2) + 1);
+   char* tmp = malloc(mpz_sizeinbase(m,2) + 1);
    
-   if(!random_number || !byte)
+   if(!random_number || !byte || !tmp)
    {
       fprintf(stderr, "Erreur: échec du malloc pour le padding chiffrement.\n");
       free(random_number);
@@ -99,18 +102,111 @@ void chiffrement_RSA(mpz_t m, const mpz_t e, const mpz_t n, mpz_t c)
    square_and_multiply(m, e, n, c);
 }
 
+//SHA256 hash
+void hash(mpz_t hm)
+{
+   int i = 0;
+   size_t taille = 0;   
+   EVP_MD_CTX* ctx = NULL;          //message digest context
+   EVP_MD* sha256 = NULL;           //message digest
+   unsigned int error = 1, len = 0;
+   unsigned char* outdigest = NULL;
+   char* msg = malloc(mpz_sizeinbase(hm, 16) + 1);
+   char* tmp = malloc(65);          //32 blocs de SHA256
+   char* hexa = malloc(3);
+   
+   strncpy(msg,"\0", strlen(msg));
+   strncpy(tmp,"\0", strlen(tmp));
+   strncpy(hexa,"\0", strlen(hexa));
+   mpz_get_str(msg, 16, hm);        //recupération du message en hexa
+
+   // Create a context for the digest operation
+   ctx = EVP_MD_CTX_new();
+   if (ctx == NULL)
+      goto err;
+
+   /*
+   * Fetch the SHA256 algorithm implementation for doing the digest. We're
+   * using the "default" library context here (first NULL parameter), and
+   * we're not supplying any particular search criteria for our SHA256
+   * implementation (second NULL parameter). Any SHA256 implementation will
+   * do.
+   */
+   sha256 = EVP_MD_fetch(NULL, "SHA256", NULL);
+   if(sha256 == NULL)
+      goto err;
+
+   // Initialise the digest operation
+   if(!EVP_DigestInit_ex(ctx, sha256, NULL))
+      goto err;
+
+   /*
+   * Pass the message to be digested. This can be passed in over multiple
+   * EVP_DigestUpdate calls if necessary
+   */
+   if(!EVP_DigestUpdate(ctx, msg, sizeof(msg)))
+      goto err;
+
+   // Allocate the output buffer
+   outdigest = OPENSSL_malloc(EVP_MD_get_size(sha256));
+   if(outdigest == NULL)
+      goto err;
+
+   // Now calculate the digest itself
+   if(!EVP_DigestFinal_ex(ctx, outdigest, &len))
+      goto err;
+
+   // Print out the digest result
+   //BIO_dump_fp(stdout, outdigest, len);
+   
+   for(i = 0; i < 32; i++)
+   {
+      sprintf(hexa, "%x", outdigest[i]);
+      taille = strlen(hexa);
+      if(strcmp(hexa,"0") == 0)
+      {
+         i+=2;
+         strncat(tmp, "00", 2);
+      }
+      else if((taille == 1) && strcmp(hexa,"0") != 0)
+      {
+         i++;
+         strncat(tmp, "0", 1);
+         strncat(tmp, hexa, 1);
+      }
+      else
+      {
+         strncat(tmp, hexa, taille);
+      }
+   }
+   mpz_set_str(hm, tmp, 16);   //récupération du hash
+
+   error = 0;
+
+   err:
+      // Clean up all the resources we allocated
+      OPENSSL_free(outdigest);
+      EVP_MD_free(sha256);
+      EVP_MD_CTX_free(ctx);
+      free(msg);
+      free(tmp);
+      free(hexa);
+      if(error != 0)
+         ERR_print_errors_fp(stderr);
+}
+
 /* PKCS#1 v1.5 pour la signature
-* - de la forme : 00 01 FF FF FF FF FF FF FF FF 00 | M
+* - de la forme : 00 01 FF FF FF FF FF FF FF FF 00 | H(M)
 * - taille :                  (88 bits)            | (variable)
 */
-static void padding_signature(mpz_t m)
+void padding_signature(mpz_t m)    //m est déjà hashé
 {
    size_t i, j;
    char* random_number = malloc(sizeof(char) * PADDING_SIZE + mpz_sizeinbase(m, 2) + 1); //chaine de 88 bits (11 octets) + bits du message
    char* byte = malloc(sizeof(char) * BYTE_SIZE + 1);   //1 octet
    char* tmp = malloc(mpz_sizeinbase(m, 2) + 1);
    
-   if(!random_number || !byte)
+   if(!random_number || !byte || !tmp)
    {
       fprintf(stderr, "Erreur: échec du malloc pour le padding signature.\n");
       free(random_number);
