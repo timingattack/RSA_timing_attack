@@ -1,7 +1,7 @@
 # Variables
 CC=gcc
 CFLAGS=-Wall -Wextra -std=c99 -pedantic -O2
-LDFLAGS=-lgmp
+LDFLAGS=-lgmp -lcrypto -lssl
 OFLAGS=-I inc
 EXEC=main.exe
 SRC=main.c square_multiply.c chiffrement.c dechiffrement.c creation_des_cles.c miller_rabin.c rsa.c temps.c
@@ -21,10 +21,6 @@ vpath %.h inc
 # Lance toutes les étapes
 all: dirs
 	@./bin/main.exe
-
-# Lance le test pour montgomery
-test: checkdirs main_montgomery.exe
-	@./bin/main_montgomery.exe
 	
 # Lance la création des dossiers bin et obj et l'édition de liens
 dirs: checkdirs $(EXEC)
@@ -40,9 +36,6 @@ $(BUILD_DIR):
 main.exe: $(OBJ)
 	@$(CC) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^) $(LDFLAGS)
 
-main_montgomery.exe: main_montgomery.o montgomery.o square_multiply.o dechiffrement.o creation_des_cles.o miller_rabin.o
-	@$(CC) $(LDFLAGS) $(CFLAGS) -o $(DIR_EXEC)/$@  $(addprefix $(DIR_OBJ)/,$^)
-
 # Dépendance des fichiers .o
 main.o: rsa.h
 
@@ -50,7 +43,7 @@ rsa.o: chiffrement.h dechiffrement.h creation_des_cles.h temps.h rsa.h
 
 square_multiply.o: square_multiply.h
 
-miller_rabin.o: miller_rabin.h square_multiply.h
+miller_rabin.o: miller_rabin.h square_multiply.h creation_des_cles.h
 
 chiffrement.o: chiffrement.h square_multiply.h miller_rabin.h
 
@@ -61,9 +54,6 @@ creation_des_cles.o: creation_des_cles.h square_multiply.h miller_rabin.h
 temps.o : temps.h
 
 montgomery.o: montgomery.h
-
-main_montgomery.o: montgomery.h square_multiply.h dechiffrement.h creation_des_cles.h
-
 
 # Compilation
 %.o: %.c
