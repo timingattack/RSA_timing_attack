@@ -4,8 +4,9 @@
 
 void chiffrement_RSA(mpz_t m, const mpz_t  e, const mpz_t n, mpz_t c);
 void chiffrement_RSA_montgomery(mpz_t m, const mpz_t e, const mpz_t n, mpz_t c, const mpz_t v, const mpz_t r);
+void padding_signature(mpz_t m);
+void hash(mpz_t hm);	//SHA256
 void signature(mpz_t m, const mpz_t d, const mpz_t n, mpz_t s);
-
 void generer_R_montgomery(mpz_t r, const mpz_t n);
 void bezout(const mpz_t r, const mpz_t n, mpz_t u, mpz_t v, mpz_t pgcd);
 void verification(const mpz_t u, const mpz_t z, const mpz_t n, mpz_t verif);
