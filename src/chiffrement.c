@@ -165,12 +165,10 @@ void hash(mpz_t hm)
       taille = strlen(hexa);
       if(strcmp(hexa,"0") == 0)
       {
-         i+=2;
          strncat(tmp, "00", 2);
       }
       else if((taille == 1) && strcmp(hexa,"0") != 0)
       {
-         i++;
          strncat(tmp, "0", 1);
          strncat(tmp, hexa, 1);
       }
@@ -178,6 +176,8 @@ void hash(mpz_t hm)
       {
          strncat(tmp, hexa, taille);
       }
+      //printf("hexa: %s\n", hexa);
+      //printf("hash: %s\n", tmp);
    }
    mpz_set_str(hm, tmp, 16);   //récupération du hash
 
