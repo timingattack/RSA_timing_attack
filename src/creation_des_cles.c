@@ -20,6 +20,7 @@ void generer_npq(mpz_t n, mpz_t p, mpz_t q)
     if(mpz_cmp(p, q))
     {
         mpz_mul(n, p, q);
+        n_size = (unsigned int) mpz_sizeinbase(n, 2);
         return;
     } else {
         generer_npq(n, p, q);

@@ -40,7 +40,8 @@ static void padding_dechiffrement(mpz_t m)
 void dechiffrement_RSA(const mpz_t c, const mpz_t d, const mpz_t n, mpz_t m)
 {
    square_and_multiply(c, d, n, m);
-   padding_dechiffrement(m);
+   if(padding)
+      padding_dechiffrement(m);
 }
 
 //vérifie la signature s^(e) avec H(m)
@@ -50,14 +51,15 @@ void verification_signature(mpz_t s, const mpz_t e, const mpz_t n, const mpz_t h
    mpz_init(pkcs_ms);
    mpz_init(pkcs_hm);
    mpz_set(pkcs_hm, hm);
-   square_and_multiply(s, e, n, pkcs_ms);    //µ(m)  
-   padding_signature(pkcs_hm);               //µ(m)
+   square_and_multiply(s, e, n, pkcs_ms);    //µ(m) 
+   if(padding)
+      padding_signature(pkcs_hm);            //µ(m)
    
    if(!(mpz_cmp(pkcs_ms, pkcs_hm)))
    {
-      printf("la signature est valide.\n");
+      printf("signature valide.\n");
    } else {
-      fprintf(stderr, "la signature est invalide.\n");
+      fprintf(stderr, "signature invalide.\n");
       mpz_clear(pkcs_ms);
       mpz_clear(pkcs_hm);
       exit(8);
@@ -69,14 +71,14 @@ void verification_signature(mpz_t s, const mpz_t e, const mpz_t n, const mpz_t h
 
 //--------------------------------------MONTGOMERY-------------------------------------------//
 
-void Montgomery_Exponentiation_decrypt(mpz_t decrypt, const mpz_t a, const mpz_t v, const mpz_t d, const mpz_t r, const mpz_t n)
+void Montgomery_Exponentiation_decrypt(mpz_t decrypt, const mpz_t a, const mpz_t v, const mpz_t d, const mpz_t n, const unsigned int N_SIZE)
 {
-   Montgomery_Exponentiation_crypt(decrypt ,a ,v ,d ,r ,n);
+   Montgomery_Exponentiation_crypt(decrypt ,a ,v ,d ,n,N_SIZE);
 }
 
-
-void dechiffrement_RSA_montgomery(const mpz_t c, const mpz_t d, const mpz_t n, mpz_t m, const mpz_t v, const mpz_t r)
+void dechiffrement_RSA_montgomery(const mpz_t c, const mpz_t d, const mpz_t n, mpz_t m, const mpz_t v, const unsigned int N_SIZE)
 {
-   Montgomery_Exponentiation_decrypt(m,c,v,d,r,n);
-   padding_dechiffrement(m);
+   Montgomery_Exponentiation_decrypt(m,c,v,d,n,N_SIZE);
+   if(padding)
+      padding_dechiffrement(m);
 }
