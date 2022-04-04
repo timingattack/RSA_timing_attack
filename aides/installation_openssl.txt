@@ -1,0 +1,1 @@
+Télécharger le fichier .tar puis suivre les instructions du fichier INSTALL du dossier openssl-3.0.1
