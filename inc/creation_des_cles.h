@@ -9,6 +9,7 @@
 #define PRIME_LOW_SIZE 512          //RSA 1024 bits
 
 int prime_size;
+unsigned int n_size;
 
 unsigned int pgcd(const unsigned int a, const unsigned int b);
 void generer_npq(mpz_t n, mpz_t p, mpz_t q);

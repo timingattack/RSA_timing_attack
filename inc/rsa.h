@@ -3,7 +3,6 @@
 #include <gmp.h>
 
 void run();
-void run_rsa();
-void run_rsa_montgomery();
+void run_rsa(const char mode);
 
 #endif /*__RSA__*/
