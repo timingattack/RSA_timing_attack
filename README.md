@@ -6,8 +6,3 @@ pour compiler le RSA :
 ```shell
 $make
 ```
-
-pour compiler montgomery :
-```shell
-$make test
-```
