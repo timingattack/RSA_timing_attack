@@ -10,6 +10,7 @@
 #include "chiffrement.h"
 #include "square_multiply.h"
 #include "miller_rabin.h"
+#include "creation_des_cles.h"
 
 #define PADDING_SIZE 88
 #define BYTE_SIZE 8
@@ -277,10 +278,9 @@ void signature(mpz_t m, const mpz_t d, const mpz_t n, mpz_t s)
 //--------------------------------------MONTGOMERY-------------------------------------------//
 
 /* Generateur de r =  2^1024 ( RSA 1024 bits ) */
-void generer_R_montgomery(mpz_t r, const mpz_t n)
+void generer_R_montgomery(mpz_t r)
 {
-      unsigned int N_SIZE =  mpz_sizeinbase(n, 2); //nombre de bits de n 
-      mpz_ui_pow_ui(r, 2, N_SIZE);
+      mpz_ui_pow_ui(r, 2, n_size);
 }
 
 /* Applique le theoreme de Bezout sur n et r et renvoie u et v tel que :
@@ -345,13 +345,14 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
 {
    unsigned int k, taille;
    taille = mpz_sizeinbase(e, 2);
-   mpz_t a_bar, x_bar, rop1, rop2, un, rshiftr, andr , msk;
-   mpz_inits(a_bar, x_bar, rop1, rop2, un, rshiftr, andr, msk, NULL);
+   mpz_t a_bar, x_bar, rop1, un, rshiftr, andr , msk;
+
+   mpz_inits(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
    mpz_set_ui(un, 1);
    mpz_set_ui(msk, 1);
 
-   mpz_mul_2exp(rop1, a, N_SIZE); // a * r ( r = 2^N_SIZE)
-   mpz_mod(a_bar, rop1, n); // ( a * r ) mod n
+   mpz_mul_2exp(rop1, a, N_SIZE); // rop1 = a * r ( r = 2^N_SIZE)
+   mpz_mod(a_bar, rop1, n); // a_bar = ( a * r ) mod n
    mpz_mul_2exp(x_bar, un, N_SIZE); // x_bar = 1 * r ( r = 2^N_SIZE) 
 
    for(k = taille; k > 0; k--)
@@ -365,9 +366,9 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
          Montgomery_product(v, a_bar, x_bar, n, x_bar,N_SIZE); // multiply 
       } 
    }
-   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul de y 
+   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre 
 
-   mpz_clears(a_bar, x_bar, rop1, rop2, un, rshiftr, andr, msk, NULL);
+   mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
 }
 
 void verification(const mpz_t u, const mpz_t z, const mpz_t n, mpz_t verif)

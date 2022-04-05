@@ -139,7 +139,6 @@ void run()
         prime_size = PRIME_VERY_LONG_SIZE;
     }
 
-    n_size = prime_size * 2;
 
     if(m == '1')
         printf("-CLASSIQUE");
@@ -215,7 +214,7 @@ void run_rsa(const char mode)
     if(mode == '2')
     {
         //générer R
-        generer_R_montgomery(r, n);
+        generer_R_montgomery(r);
         //bezout
         bezout(r, n, u, v, pgcd_bezout);
         //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)  \n\n", r, u, n, v);
