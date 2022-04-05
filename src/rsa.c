@@ -48,7 +48,7 @@ static void choix_taille_module_rsa(char* choix)
 
 static void choix_loop_iteration(char*  choix, char** iter)
 {
-    int taille = 1;
+    unsigned int taille = 1, str_length;
     char* tmp = NULL;
     printf("\n\tChoisir le nombre iteration pour le timing attack :\n\t  ");
     *choix = getchar();
@@ -79,10 +79,12 @@ static void choix_loop_iteration(char*  choix, char** iter)
         if(tmp)
             free(tmp);
         tmp = malloc(sizeof(char) * strlen(*iter) + 1);
-        strncpy(tmp, *iter, strlen(*iter));
+        str_length = sizeof(*iter);
+        strncpy(tmp, *iter, str_length);
         free(*iter);
         *iter = malloc(sizeof(char) * taille + 1);
-        strncpy(*iter, tmp, strlen(tmp));
+        str_length = sizeof(tmp);
+        strncpy(*iter, tmp, str_length);
         strncat(*iter, choix, 1);
     }
 }
@@ -191,7 +193,9 @@ void run_rsa(const char mode)
     gmp_printf("message d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(hm, m);
+    printf("avant hash\n");
     hash(hm);
+    printf("apres hash\n");
     //gmp_printf("\nhash : %Z0X\n", hm);
     mpz_set(pkcs_sgn, hm);
 

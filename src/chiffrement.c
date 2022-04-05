@@ -116,10 +116,10 @@ void hash(mpz_t hm)
    char* msg = malloc(mpz_sizeinbase(hm, 16) + 1);
    char* tmp = malloc(65);          //32 blocs de SHA256
    char* hexa = malloc(3);
+   msg[0] = '\0';
+   tmp[0] = '\0';
+   hexa[0] = '\0';
    
-   strncpy(msg,"\0", strlen(msg));
-   strncpy(tmp,"\0", strlen(tmp));
-   strncpy(hexa,"\0", strlen(hexa));
    mpz_get_str(msg, 16, hm);        //recupération du message en hexa
 
    // Create a context for the digest operation
@@ -164,7 +164,7 @@ void hash(mpz_t hm)
    for(i = 0; i < 32; i++)
    {
       sprintf(hexa, "%x", outdigest[i]);
-      taille = strlen(hexa);
+      taille = sizeof(hexa);
       if(strcmp(hexa,"0") == 0)
       {
          strncat(tmp, "00", 2);
