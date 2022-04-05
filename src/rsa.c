@@ -193,9 +193,7 @@ void run_rsa(const char mode)
     gmp_printf("message d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(hm, m);
-    printf("avant hash\n");
     hash(hm);
-    printf("apres hash\n");
     //gmp_printf("\nhash : %Z0X\n", hm);
     mpz_set(pkcs_sgn, hm);
 
