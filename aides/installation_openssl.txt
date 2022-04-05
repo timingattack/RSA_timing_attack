@@ -1,1 +1,8 @@
 Télécharger le fichier .tar puis suivre les instructions du fichier INSTALL du dossier openssl-3.0.1
+
+$ sudo nano /etc/ld.so.conf.d/lib.conf
+/usr/local/lib64
+$ sudo nano /etc/ld.so.conf.d/openssl.conf
+/usr/local/ssl/lib64
+$ sudo ldconfig
+$ openssl version
