@@ -50,3 +50,18 @@ void fin_chrono(double *ttc, clock_t tdc, clock_t tfc, double *ttr, struct times
 	afficher_temps_cpu(ttc, tdc, tfc);
 	afficher_temps_reel(ttr, tdr, tfr);
 }
+
+/*
+*	Fonction qui permet lancer le début du chrono pour le timing attack.
+*/
+void debut_chrono_timing_attack(clock_t *tc) {
+	temps_cpu(tc);
+}
+
+/*
+*	Fonction qui permet lancer la fin du chrono timing attack.
+*/
+void fin_chrono_timing_attack(double *ttc, clock_t tdc, clock_t tfc) {
+	temps_cpu(&tfc);
+	afficher_temps_cpu(ttc, tdc, tfc);
+}

@@ -46,6 +46,7 @@ static void choix_taille_module_rsa(char* choix)
     }
 }
 
+// A faire: à supprimer lorsque l'implémentation de la condition d'arrêt de l'attaque temporelle sera finie
 static void choix_loop_iteration(char*  choix, char** iter)
 {
     unsigned int taille = 1, str_length;
@@ -114,7 +115,7 @@ void run()
     printf("\n\t\t--Timing Attack--\n");
     choix_mode_rsa(&m);
     choix_taille_module_rsa(&t);
-    choix_loop_iteration(&l,&iteration);
+    choix_loop_iteration(&l,&iteration);    // A faire: (voir le commentaire au début de la fonction)
     choix_padding(&p);
 
     if(t == '1')
@@ -140,7 +141,6 @@ void run()
         printf("\n\t\tRSA-4096");
         prime_size = PRIME_VERY_LONG_SIZE;
     }
-
 
     if(m == '1')
         printf("-CLASSIQUE");
