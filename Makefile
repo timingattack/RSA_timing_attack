@@ -4,7 +4,7 @@ CFLAGS=-Wall -Wextra -std=c99 -pedantic -O2
 LDFLAGS=-lgmp -lcrypto -lssl
 OFLAGS=-I inc
 EXEC=main.exe
-SRC=main.c square_multiply.c chiffrement.c dechiffrement.c creation_des_cles.c miller_rabin.c rsa.c temps.c
+SRC=main.c square_multiply.c chiffrement.c dechiffrement.c creation_des_cles.c miller_rabin.c rsa.c temps.c timing_attack.c
 OBJ=$(SRC:.c=.o)
 DIR_EXEC=bin
 DIR_OBJ=obj
@@ -51,9 +51,11 @@ dechiffrement.o: dechiffrement.h chiffrement.h square_multiply.h
 
 creation_des_cles.o: creation_des_cles.h square_multiply.h miller_rabin.h
 
-temps.o : temps.h
+temps.o: temps.h
 
 montgomery.o: montgomery.h
+
+timing_attack.o: timing_attack.h temps.h
 
 # Compilation
 %.o: %.c
