@@ -9,7 +9,7 @@ ENSEMBLE* initialiser_ensemble()
 	
 	if(!ens)
 	{
-		fscanf(stderr, "Erreur lors de l'allocation de l'ensemble.\n");
+		fprintf(stderr, "Erreur lors de l'allocation de l'ensemble.\n");
 		exit(10);
 	}
 
@@ -26,7 +26,7 @@ ELEMENT* initialiser_element(double temps)
 	
 	if(!elem)
 	{
-		fscanf(stderr, "Erreur lors de l'allocation de l'élément.\n");
+		fprintf(stderr, "Erreur lors de l'allocation de l'élément.\n");
 		exit(11);
 	}
 
