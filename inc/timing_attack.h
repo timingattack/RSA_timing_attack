@@ -3,13 +3,20 @@
 
 typedef struct element {
 	double temps;
-} ELEMENT; // représente un élément de l'ensemble A ou B.
+	struct element* suiv;
+} ELEMENT; 						//représente un élément de l'ensemble A ou B.
 
 typedef struct ensemble {
-	ELEMENT elem;
-	ELEMENT* suivant;
+	ELEMENT* elem;
 	ELEMENT* fin;
 	unsigned long int taille;
-} ENSEMBLE; // représente l'ensemble A ou B sous la forme d'une simple liste chaînée.
+} ENSEMBLE; 					//représente l'ensemble A ou B sous la forme d'une simple liste chaînée.
+
+ENSEMBLE* initialiser_ensemble();
+ELEMENT* initialiser_element(double temps);
+void ajouter_element(ELEMENT *elem, ENSEMBLE **ens);
+void afficher_ensemble(ENSEMBLE* ens, const char* nom);
+
+void test(); //fonction de test pour tester les fonctions
 
 #endif /* _TIMING_ATTACK_H_ */
