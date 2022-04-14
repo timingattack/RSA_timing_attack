@@ -36,9 +36,9 @@ static void padding_chiffrement(mpz_t m)
       exit(7);
    }
 
-   strncpy(random_number,"\0", strlen(random_number));
-   strncpy(byte,"\0", strlen(byte));
-   strncpy(tmp,"\0", strlen(tmp));
+   random_number[0] = '\0';
+   byte[0] = '\0';
+   tmp[0] = '\0';
 
    for(i = 0; i < 12; i++)
    {
@@ -117,9 +117,9 @@ void hash(mpz_t hm)
    char* tmp = malloc(65);          //32 blocs de SHA256
    char* hexa = malloc(3);
    
-   strncpy(msg,"\0", strlen(msg));
-   strncpy(tmp,"\0", strlen(tmp));
-   strncpy(hexa,"\0", strlen(hexa));
+   msg[0] = '\0';
+   tmp[0] = '\0';
+   hexa[0] = '\0';
    mpz_get_str(msg, 16, hm);        //recupération du message en hexa
 
    // Create a context for the digest operation
@@ -164,7 +164,7 @@ void hash(mpz_t hm)
    for(i = 0; i < 32; i++)
    {
       sprintf(hexa, "%x", outdigest[i]);
-      taille = sizeof(hexa) - 1;
+      taille = sizeof(hexa);
       if(strcmp(hexa,"0") == 0)
       {
          strncat(tmp, "00", 2);
@@ -217,9 +217,9 @@ void padding_signature(mpz_t m)    //m est déjà hashé
       exit(9);
    }
 
-   strncpy(random_number,"\0", strlen(random_number));
-   strncpy(byte,"\0", strlen(byte));
-   strncpy(tmp,"\0", strlen(tmp));
+   random_number[0] = '\0';
+   byte[0] = '\0';
+   tmp[0] = '\0';
 
    for(i = 0; i < 12; i++)
    {
@@ -345,13 +345,13 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
 {
    unsigned int k, taille;
    taille = mpz_sizeinbase(e, 2);
-   mpz_t a_bar, x_bar, rop1, rop2, un, rshiftr, andr , msk;
-   mpz_inits(a_bar, x_bar, rop1, rop2, un, rshiftr, andr, msk, NULL);
+   mpz_t a_bar, x_bar, rop1, un, rshiftr, andr , msk;
+   mpz_inits(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
    mpz_set_ui(un, 1);
    mpz_set_ui(msk, 1);
 
-   mpz_mul_2exp(rop1, a, N_SIZE); // a * r ( r = 2^N_SIZE)
-   mpz_mod(a_bar, rop1, n); // ( a * r ) mod n
+   mpz_mul_2exp(rop1, a, N_SIZE); // rop1 = a * r ( r = 2^N_SIZE)
+   mpz_mod(a_bar, rop1, n); // a_bar = ( a * r ) mod n
    mpz_mul_2exp(x_bar, un, N_SIZE); // x_bar = 1 * r ( r = 2^N_SIZE) 
 
    for(k = taille; k > 0; k--)
@@ -365,9 +365,9 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
          Montgomery_product(v, a_bar, x_bar, n, x_bar,N_SIZE); // multiply 
       } 
    }
-   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul de y 
+   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre
 
-   mpz_clears(a_bar, x_bar, rop1, rop2, un, rshiftr, andr, msk, NULL);
+   mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
 }
 
 void verification(const mpz_t u, const mpz_t z, const mpz_t n, mpz_t verif)
