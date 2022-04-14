@@ -7,10 +7,10 @@
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
-#include "chiffrement.h"
-#include "square_multiply.h"
 #include "miller_rabin.h"
 #include "creation_des_cles.h"
+#include "square_multiply.h"
+#include "chiffrement.h"
 
 #define PADDING_SIZE 88
 #define BYTE_SIZE 8
@@ -116,10 +116,10 @@ void hash(mpz_t hm)
    char* msg = malloc(mpz_sizeinbase(hm, 16) + 1);
    char* tmp = malloc(65);          //32 blocs de SHA256
    char* hexa = malloc(3);
-   msg[0] = '\0';
-   tmp[0] = '\0';
-   hexa[0] = '\0';
    
+   strncpy(msg,"\0", strlen(msg));
+   strncpy(tmp,"\0", strlen(tmp));
+   strncpy(hexa,"\0", strlen(hexa));
    mpz_get_str(msg, 16, hm);        //recupération du message en hexa
 
    // Create a context for the digest operation
@@ -164,7 +164,7 @@ void hash(mpz_t hm)
    for(i = 0; i < 32; i++)
    {
       sprintf(hexa, "%x", outdigest[i]);
-      taille = sizeof(hexa);
+      taille = sizeof(hexa) - 1;
       if(strcmp(hexa,"0") == 0)
       {
          strncat(tmp, "00", 2);
@@ -313,7 +313,7 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
 { 
    mpz_t m, z, nprim; 
    mpz_inits(nprim,m,z,NULL);
-   
+
    mpz_neg(nprim,v); // nprim = -v
 
    //MONTGOMERY
@@ -325,17 +325,17 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    */
    mpz_mul(z,a_bar,b_bar); // z = abar bbar
    mpz_mod_2exp(m,z,N_SIZE); // m = ( z mod r )
-   mpz_mul(m, m,nprim ); //  m = ( z mod r ) * nprim 
+   mpz_mul(m,m,nprim); //  m = ( z mod r ) * nprim 
    mpz_mod_2exp(m,m, N_SIZE); // m = ( z mod r ) * nprim mod r
-   mpz_mul(t, m,n ); // t = ( m * n )
+   mpz_mul(t,m,n ); // t = ( m * n )
    mpz_add(t,z,t); // t = ( z + m * n )
    mpz_tdiv_q_2exp(t,t, N_SIZE); // t = ( z + m * n ) / r 
-    
+
    if((mpz_cmp(t, n) == 0) || (mpz_cmp(t,n) > 0))
    {
       mpz_sub(t, t, n); // t = t - n
    }
-  
+
    mpz_clear(m);
    mpz_clear(nprim);
    mpz_clear(z);
@@ -345,14 +345,13 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
 {
    unsigned int k, taille;
    taille = mpz_sizeinbase(e, 2);
-   mpz_t a_bar, x_bar, rop1, un, rshiftr, andr , msk;
-
-   mpz_inits(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
+   mpz_t a_bar, x_bar, rop1, rop2, un, rshiftr, andr , msk;
+   mpz_inits(a_bar, x_bar, rop1, rop2, un, rshiftr, andr, msk, NULL);
    mpz_set_ui(un, 1);
    mpz_set_ui(msk, 1);
 
-   mpz_mul_2exp(rop1, a, N_SIZE); // rop1 = a * r ( r = 2^N_SIZE)
-   mpz_mod(a_bar, rop1, n); // a_bar = ( a * r ) mod n
+   mpz_mul_2exp(rop1, a, N_SIZE); // a * r ( r = 2^N_SIZE)
+   mpz_mod(a_bar, rop1, n); // ( a * r ) mod n
    mpz_mul_2exp(x_bar, un, N_SIZE); // x_bar = 1 * r ( r = 2^N_SIZE) 
 
    for(k = taille; k > 0; k--)
@@ -366,9 +365,9 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
          Montgomery_product(v, a_bar, x_bar, n, x_bar,N_SIZE); // multiply 
       } 
    }
-   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre 
+   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul de y 
 
-   mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
+   mpz_clears(a_bar, x_bar, rop1, rop2, un, rshiftr, andr, msk, NULL);
 }
 
 void verification(const mpz_t u, const mpz_t z, const mpz_t n, mpz_t verif)

@@ -1,7 +1,7 @@
-#include "temps.h"
 #include <stdio.h> 
 #include <sys/time.h>
 #include <time.h>
+#include "temps.h"
 
 /*
 *	Fonction qui permet de calculer le temps réel.

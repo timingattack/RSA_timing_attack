@@ -6,13 +6,14 @@
 #include <unistd.h>
 #include <math.h>
 #include <gmp.h>
-#include "temps.h"
 #include <time.h>
 #include <sys/time.h>
+#include "temps.h"
+#include "creation_des_cles.h"
 #include "chiffrement.h"
 #include "dechiffrement.h"
-#include "creation_des_cles.h"
 #include "rsa.h"
+#include "timing_attack.h"
 
 static void choix_mode_rsa(char* choix)
 {
@@ -46,7 +47,7 @@ static void choix_taille_module_rsa(char* choix)
     }
 }
 
-// A faire: à supprimer lorsque l'implémentation de la condition d'arrêt de l'attaque temporelle sera finie
+//A faire: à supprimer lorsque l'implémentation de la condition d'arrêt de l'attaque temporelle sera finie
 static void choix_loop_iteration(char*  choix, char** iter)
 {
     unsigned int taille = 1, str_length;
@@ -111,11 +112,11 @@ void run()
     int i, nombre_iteration;
     char m = '\0', t = '\0', l = '\0', p = '\0';
     char* iteration = NULL;
-    srand(getpid() + time(NULL)); //utiliser pour p, q, PKCS#1, (et le message clair)
+    srand(getpid() + time(NULL));           //utiliser pour p, q, PKCS#1, (et le message clair)
     printf("\n\t\t--Timing Attack--\n");
     choix_mode_rsa(&m);
     choix_taille_module_rsa(&t);
-    choix_loop_iteration(&l,&iteration);    // A faire: (voir le commentaire au début de la fonction)
+    choix_loop_iteration(&l,&iteration);    //A faire: (voir le commentaire au début de la fonction)
     choix_padding(&p);
 
     if(t == '1')

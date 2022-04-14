@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gmp.h>
-#include "creation_des_cles.h"
-#include "square_multiply.h"
 #include "miller_rabin.h"
+#include "creation_des_cles.h"
 
 //nombre de bits qui seront utilisés pour p et q
 #define PRIME_NUMBER_SIZE prime_size

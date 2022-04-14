@@ -5,9 +5,9 @@
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
+#include "square_multiply.h"
 #include "chiffrement.h"
 #include "dechiffrement.h"
-#include "square_multiply.h"
 
 //PKCS#1 v1.5 pour le déchiffrement (extraie m de PKCS#1 chiffré)
 static void padding_dechiffrement(mpz_t m)
@@ -51,9 +51,9 @@ void verification_signature(mpz_t s, const mpz_t e, const mpz_t n, const mpz_t h
    mpz_init(pkcs_ms);
    mpz_init(pkcs_hm);
    mpz_set(pkcs_hm, hm);
-   square_and_multiply(s, e, n, pkcs_ms);    //µ(m) 
+   square_and_multiply(s, e, n, pkcs_ms);    //s^e mod n
    if(padding)
-      padding_signature(pkcs_hm);            //µ(m)
+      padding_signature(pkcs_hm);            //µ(H(m))
    
    if(!(mpz_cmp(pkcs_ms, pkcs_hm)))
    {

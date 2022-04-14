@@ -4,9 +4,9 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
-#include "miller_rabin.h"
 #include "square_multiply.h"
 #include "creation_des_cles.h"
+#include "miller_rabin.h"
 
 //quantité de nombres premiers utilisés comme base dans l'algorithme de Miller-Rabin
 #define BASES_NUMBERS 168
