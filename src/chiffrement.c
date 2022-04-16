@@ -4,6 +4,7 @@
 #include <gmp.h>
 #include <stdbool.h>
 #include <math.h>
+#include <unistd.h>        //pour faciliter le timing attack (à faire: à retirer lorsque le timing attack sera fini)
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -11,6 +12,7 @@
 #include "creation_des_cles.h"
 #include "square_multiply.h"
 #include "chiffrement.h"
+#include "temps.h"
 
 #define PADDING_SIZE 88
 #define BYTE_SIZE 8
@@ -333,7 +335,15 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
 
    if((mpz_cmp(t, n) == 0) || (mpz_cmp(t,n) > 0))
    {
+      //###############-TIMING ATTACK-################//    (ne marche pour l'instant que pour un seul chiffrement successif)
+      double tta = 0.0;                                     
+      struct timespec tta_deb = {0,0}, tta_fin = {0,0};
+      debut_chrono_timing_attack(&tta_deb);
+
       mpz_sub(t, t, n); // t = t - n
+      sleep(1);   //attend 1 seconde
+
+      fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
    }
 
    mpz_clear(m);
@@ -361,7 +371,7 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
       mpz_and(andr, rshiftr, msk);
 
       if(!(mpz_cmp_ui(andr, 1)))
-      {    
+      {  
          Montgomery_product(v, a_bar, x_bar, n, x_bar,N_SIZE); // multiply 
       } 
    }

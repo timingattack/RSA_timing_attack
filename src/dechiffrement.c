@@ -73,12 +73,12 @@ void verification_signature(mpz_t s, const mpz_t e, const mpz_t n, const mpz_t h
 
 void Montgomery_Exponentiation_decrypt(mpz_t decrypt, const mpz_t a, const mpz_t v, const mpz_t d, const mpz_t n, const unsigned int N_SIZE)
 {
-   Montgomery_Exponentiation_crypt(decrypt ,a ,v ,d ,n,N_SIZE);
+   Montgomery_Exponentiation_crypt(decrypt, a, v, d, n, N_SIZE);
 }
 
 void dechiffrement_RSA_montgomery(const mpz_t c, const mpz_t d, const mpz_t n, mpz_t m, const mpz_t v, const unsigned int N_SIZE)
 {
-   Montgomery_Exponentiation_decrypt(m,c,v,d,n,N_SIZE);
+   Montgomery_Exponentiation_decrypt(m, c, v, d, n, N_SIZE);
    if(padding)
       padding_dechiffrement(m);
 }

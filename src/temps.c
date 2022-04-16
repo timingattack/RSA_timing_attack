@@ -54,14 +54,14 @@ void fin_chrono(double *ttc, clock_t tdc, clock_t tfc, double *ttr, struct times
 /*
 *	Fonction qui permet lancer le début du chrono pour le timing attack.
 */
-void debut_chrono_timing_attack(clock_t *tc) {
-	temps_cpu(tc);
+void debut_chrono_timing_attack(struct timespec *tc) {
+	temps_reel(tc);
 }
 
 /*
 *	Fonction qui permet lancer la fin du chrono timing attack.
 */
-void fin_chrono_timing_attack(double *ttc, clock_t tdc, clock_t tfc) {
-	temps_cpu(&tfc);
-	afficher_temps_cpu(ttc, tdc, tfc);
+void fin_chrono_timing_attack(double *ttc, struct timespec tdc, struct timespec tfc) {
+	temps_reel(&tfc);
+	afficher_temps_reel(ttc, tdc, tfc);
 }
