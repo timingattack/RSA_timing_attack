@@ -109,7 +109,8 @@ static void choix_padding(char* choix)
 
 void run()
 {
-    int i, nombre_iteration;
+    //unsigned long int i;
+    unsigned long int nombre_iteration;
     char m = '\0', t = '\0', l = '\0', p = '\0';
     char* iteration = NULL;
     srand(getpid() + time(NULL));           //utiliser pour p, q, PKCS#1, (et le message clair)
@@ -159,11 +160,11 @@ void run()
 
     nombre_iteration = atoi(iteration);
 
-    for(i = 0; i < nombre_iteration; i++)
-        run_rsa(m);
+    //for(i = 0; i < nombre_iteration; i++)
+        run_rsa(m, nombre_iteration);
 }
 
-void run_rsa(const char mode)
+void run_rsa(const char mode, unsigned long int nombre_iteration)
 {
     //--------------------CHRONO--------------------------
     clock_t t_cpu_deb = 0, t_cpu_fin = 0;
@@ -172,6 +173,7 @@ void run_rsa(const char mode)
     debut_chrono(&t_cpu_deb,&t_reel_deb);
     //----------------------------------------------------
     
+    unsigned long int iteration = nombre_iteration;
     mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout;
     mpz_init(m);        //clair
     mpz_init(e);        //exposant publique e : 1 < e < phi(n)
@@ -214,35 +216,55 @@ void run_rsa(const char mode)
     generer_exposant_privee(e, phi_n, d);
     //gmp_printf("\nexposant privee d : %Zd\n", d);
 
-    if(mode == '2')
+
+    //###########################-TIMING ATTACK-#################################//
+    while(nombre_iteration)
     {
-        //générer R
-        generer_R_montgomery(r);
-        //bezout
-        bezout(r, n, u, v, pgcd_bezout);
-        //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)  \n\n", r, u, n, v);
+        printf("chiffrement n°%lu\n", iteration - nombre_iteration + 1);
+        if(iteration != nombre_iteration)
+        {
+            mpz_set_ui(m, (unsigned long int) rand());
+            gmp_printf("message d'origine : %Z0X\n", m);
+            mpz_set(s, m);
+            mpz_set(hm, m);
+            hash(hm);
+            mpz_set(pkcs_sgn, hm);
+        }
+
+        if(mode == '2')
+        {
+            //générer R
+            generer_R_montgomery(r);
+            //bezout
+            bezout(r, n, u, v, pgcd_bezout);
+            //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)  \n\n", r, u, n, v);
+        }
+
+        //chiffrement de m
+        if(mode == '1')
+            chiffrement_RSA(m, e, n, c);
+        else
+            chiffrement_RSA_montgomery(m, e, n, c, v, n_size);
+        gmp_printf("chiffré : %Z0X\n", c);
+
+        //signature de m
+        signature(pkcs_sgn, d, n, s);
+        //gmp_printf("\nsignature : %Z0X\n", s);
+
+        //vérification de s
+        verification_signature(s, e, n, hm);
+
+        //dechifrement de m
+        if(mode == '1')
+            dechiffrement_RSA(c, d, n, m);
+        else
+            dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
+        gmp_printf("message déchiffré : %Z0X\n", m);
+
+        nombre_iteration--;
+        printf("\n");
     }
-
-    //chiffrement de m
-    if(mode == '1')
-        chiffrement_RSA(m, e, n, c);
-    else
-        chiffrement_RSA_montgomery(m, e, n, c, v, n_size);
-    gmp_printf("chiffré : %Z0X\n", c);
-
-    //signature de m
-    signature(pkcs_sgn, d, n, s);
-    //gmp_printf("\nsignature : %Z0X\n", s);
-
-    //vérification de s
-    verification_signature(s, e, n, hm);
-
-    //dechifrement de m
-    if(mode == '1')
-        dechiffrement_RSA(c, d, n, m);
-    else
-        dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
-    gmp_printf("message déchiffré : %Z0X\n", m);
+    //############################-TIMING ATTACK-################################//
 
     mpz_clear(m);
     mpz_clear(e);
