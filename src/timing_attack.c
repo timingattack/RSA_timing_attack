@@ -71,6 +71,21 @@ void afficher_ensemble(ENSEMBLE* ens, const char* nom)
 	printf("\n");
 }
 
+ELEMENT* retourner_premier_element(ENSEMBLE** ens)
+{
+	ELEMENT* premier = malloc(sizeof(ELEMENT));
+	premier = (*ens)->elem;
+
+	ELEMENT* elem = initialiser_element(0.0);
+	elem->temps = premier->temps;
+	
+	(*ens)->elem = (*ens)->elem->suiv;
+	premier->suiv = NULL;
+	(*ens)->taille--;
+
+	return elem;
+}
+
 void test()
 {
 	ENSEMBLE* A = initialiser_ensemble();
@@ -93,12 +108,20 @@ void test()
     
     afficher_ensemble(A, "A");
     afficher_ensemble(B, "B");
+
+    ELEMENT* ea = retourner_premier_element(&A);
+    ELEMENT* eb = retourner_premier_element(&B);
+
+    afficher_ensemble(A, "A");
+    afficher_ensemble(B, "B");
     
     free(e1);
     free(e2);
     free(e3);
     free(e4);
     free(e5);
+    free(ea);
+    free(eb);
     free(A);
     free(B);
 }
