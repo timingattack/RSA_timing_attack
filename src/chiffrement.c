@@ -335,7 +335,8 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
 
    if((mpz_cmp(t, n) == 0) || (mpz_cmp(t,n) > 0))
    {
-      //###############-TIMING ATTACK-################//    (ne marche pour l'instant que pour un seul chiffrement successif)
+      //###############-TIMING ATTACK-################//
+      
       double tta = 0.0;                                     
       struct timespec tta_deb = {0,0}, tta_fin = {0,0};
       debut_chrono_timing_attack(&tta_deb);
@@ -344,6 +345,8 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
       sleep(1);   //attend 1 seconde
 
       fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
+      
+      //###############-TIMING ATTACK-################//
    }
 
    mpz_clear(m);
