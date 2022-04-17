@@ -3,6 +3,6 @@
 #include <gmp.h>
 
 void run();
-void run_rsa(const char mode);
+void run_rsa(const char mode, unsigned long int nombre_iteration);
 
 #endif /*__RSA__*/
