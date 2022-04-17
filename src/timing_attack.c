@@ -73,7 +73,9 @@ void afficher_ensemble(ENSEMBLE* ens, const char* nom)
 
 ELEMENT* retourner_premier_element(ENSEMBLE** ens)
 {
-	ELEMENT* premier = malloc(sizeof(ELEMENT));
+	ELEMENT* premier = initialiser_element(-1.0);
+	if((*ens)->elem == NULL)
+		return premier;
 	premier = (*ens)->elem;
 
 	ELEMENT* elem = initialiser_element(0.0);
@@ -86,13 +88,25 @@ ELEMENT* retourner_premier_element(ENSEMBLE** ens)
 	return elem;
 }
 
+void afficher_element(ELEMENT* elem, const char* nom)
+{
+	if(elem->temps == -1.0 || elem == NULL)
+	{
+		printf("\t\tL'element %s est vide.\n", nom);
+		return;
+	}
+	printf("\t\tL'element %s est %f.\n", nom, elem->temps);
+}
+
 void test()
 {
 	ENSEMBLE* A = initialiser_ensemble();
     ENSEMBLE* B = initialiser_ensemble();
+    ENSEMBLE* C = initialiser_ensemble();
     
     afficher_ensemble(A, "A");
     afficher_ensemble(B, "B");
+    afficher_ensemble(C, "C");
     
     ELEMENT* e1 = initialiser_element(12);
     ELEMENT* e2 = initialiser_element(79);
@@ -111,9 +125,12 @@ void test()
 
     ELEMENT* ea = retourner_premier_element(&A);
     ELEMENT* eb = retourner_premier_element(&B);
+    ELEMENT* ev = retourner_premier_element(&C);
 
     afficher_ensemble(A, "A");
     afficher_ensemble(B, "B");
+    afficher_ensemble(C, "C");
+    afficher_element(ev, "ev");
     
     free(e1);
     free(e2);
@@ -122,6 +139,7 @@ void test()
     free(e5);
     free(ea);
     free(eb);
+    free(ev);
     free(A);
     free(B);
 }
