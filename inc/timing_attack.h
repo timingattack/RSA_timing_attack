@@ -17,6 +17,7 @@ ELEMENT* initialiser_element(double temps);
 void ajouter_element(ELEMENT *elem, ENSEMBLE **ens);
 void afficher_ensemble(ENSEMBLE* ens, const char* nom);
 ELEMENT* retourner_premier_element(ENSEMBLE** ens);
+void afficher_element(ELEMENT* elem, const char* nom);
 
 void test(); //fonction de test pour tester les fonctions
 
