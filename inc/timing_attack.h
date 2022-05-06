@@ -19,6 +19,9 @@ void afficher_ensemble(ENSEMBLE* ens, const char* nom);
 ELEMENT* retourner_premier_element(ENSEMBLE** ens);
 void afficher_element(ELEMENT* elem, const char* nom);
 
-void test(); //fonction de test pour tester les fonctions
+void test(); //fonction de test pour tester les fonctions (à faire: à retirer lorsque timing attack fini)
+
+ENSEMBLE* A;
+ENSEMBLE* B;
 
 #endif /* _TIMING_ATTACK_H_ */
