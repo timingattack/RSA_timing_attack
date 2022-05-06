@@ -218,12 +218,17 @@ void run_rsa(const char mode, unsigned long int nombre_iteration)
 
 
     //###########################-TIMING ATTACK-#################################//
+    
+    //initialisation des ensembles A et B
+    A = initialiser_ensemble();   
+    B = initialiser_ensemble();
+
     while(nombre_iteration)
     {
         printf("chiffrement n°%lu\n", iteration - nombre_iteration + 1);
         if(iteration != nombre_iteration)
         {
-            mpz_set_ui(m, (unsigned long int) rand());
+            mpz_set_ui(m, (unsigned long int) rand());  //génération d'un nouveau message aléatoire
             gmp_printf("message d'origine : %Z0X\n", m);
             mpz_set(s, m);
             mpz_set(hm, m);
@@ -263,7 +268,15 @@ void run_rsa(const char mode, unsigned long int nombre_iteration)
 
         nombre_iteration--;
         printf("\n");
+
+        afficher_ensemble(A,"A");
+        afficher_ensemble(B,"B");
     }
+
+    //désallocation des ensembles A et B
+    free(A);
+    free(B);
+
     //############################-TIMING ATTACK-################################//
 
     mpz_clear(m);

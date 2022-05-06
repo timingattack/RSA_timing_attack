@@ -20,16 +20,14 @@ void temps_cpu(clock_t *temps_cpu_t) {
 /*
 *	Fonction qui permet afficher le temps réel écoulé depuis le début de l'exécution.
 */
-void afficher_temps_reel(double *temps_reel, struct timespec temps_reel_1, struct timespec temps_reel_2) {
-	*temps_reel = (temps_reel_2.tv_sec - temps_reel_1.tv_sec);
+void afficher_temps_reel(double *temps_reel) {
 	printf("temps réel = %.2f secondes\n",*temps_reel);
 }
 
 /*
 *	Fonction qui permet afficher le temps CPU écoulé depuis le début de l'exécution.
 */
-void afficher_temps_cpu(double *temps_cpu, clock_t temps_cpu_1, clock_t temps_cpu_2) {
-	*temps_cpu = (temps_cpu_2 - temps_cpu_1) * 1e-6;
+void afficher_temps_cpu(double *temps_cpu) {
 	printf("temps CPU = %.4f secondes\n",*temps_cpu);
 }
 
@@ -47,21 +45,24 @@ void debut_chrono(clock_t *tc, struct timespec *tr) {
 void fin_chrono(double *ttc, clock_t tdc, clock_t tfc, double *ttr, struct timespec tdr, struct timespec tfr) {
 	temps_cpu(&tfc);
 	temps_reel(&tfr);
-	afficher_temps_cpu(ttc, tdc, tfc);
-	afficher_temps_reel(ttr, tdr, tfr);
+	*ttc = (tfc - tdc) * 1e-6;
+	*ttr= (tfr.tv_sec - tdr.tv_sec);
+	afficher_temps_cpu(ttc);
+	afficher_temps_reel(ttr);
 }
 
 /*
 *	Fonction qui permet lancer le début du chrono pour le timing attack.
 */
-void debut_chrono_timing_attack(struct timespec *tc) {
-	temps_reel(tc);
+void debut_chrono_timing_attack(struct timespec *tda) {
+	temps_reel(tda);
 }
 
 /*
 *	Fonction qui permet lancer la fin du chrono timing attack.
 */
-void fin_chrono_timing_attack(double *ttc, struct timespec tdc, struct timespec tfc) {
-	temps_reel(&tfc);
-	afficher_temps_reel(ttc, tdc, tfc);
+void fin_chrono_timing_attack(double *tta, struct timespec tda, struct timespec tfa) {
+	temps_reel(&tfa);
+	*tta= (tfa.tv_sec - tda.tv_sec);
+	afficher_temps_reel(tta);
 }

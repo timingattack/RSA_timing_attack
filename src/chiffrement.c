@@ -13,6 +13,7 @@
 #include "square_multiply.h"
 #include "chiffrement.h"
 #include "temps.h"
+#include "timing_attack.h"
 
 #define PADDING_SIZE 88
 #define BYTE_SIZE 8
@@ -322,32 +323,42 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    /*
    * m = ( z mod r ) * nprim mod r
    * t = ( z + m * n ) / r
-   * si t > n --> t = t-n 
+   * si t > n --> t = t - n
    * sinon  t
    */
    mpz_mul(z,a_bar,b_bar); // z = abar bbar
    mpz_mod_2exp(m,z,N_SIZE); // m = ( z mod r )
-   mpz_mul(m,m,nprim); //  m = ( z mod r ) * nprim 
+   mpz_mul(m,m,nprim); //  m = ( z mod r ) * nprim
    mpz_mod_2exp(m,m, N_SIZE); // m = ( z mod r ) * nprim mod r
    mpz_mul(t,m,n ); // t = ( m * n )
    mpz_add(t,z,t); // t = ( z + m * n )
-   mpz_tdiv_q_2exp(t,t, N_SIZE); // t = ( z + m * n ) / r 
+   mpz_tdiv_q_2exp(t,t, N_SIZE); // t = ( z + m * n ) / r
+
+   //###########################-TIMING ATTACK-#################################//
+
+   double tta = 0.0;                                     
+   struct timespec tta_deb = {0,0}, tta_fin = {0,0};
+   debut_chrono_timing_attack(&tta_deb);
 
    if((mpz_cmp(t, n) == 0) || (mpz_cmp(t,n) > 0))
    {
-      //###############-TIMING ATTACK-################//
-      
-      double tta = 0.0;                                     
-      struct timespec tta_deb = {0,0}, tta_fin = {0,0};
-      debut_chrono_timing_attack(&tta_deb);
-
       mpz_sub(t, t, n); // t = t - n
       sleep(1);   //attend 1 seconde
-
-      fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
-      
-      //###############-TIMING ATTACK-################//
    }
+
+   fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
+
+   ELEMENT* elem = initialiser_element(tta);
+
+   if(elem->temps >= 1)
+      ajouter_element(elem, &A);
+   else
+      ajouter_element(elem, &B);
+
+   afficher_ensemble(A,"A");
+   afficher_ensemble(B,"B");
+
+   //###########################-TIMING ATTACK-#################################//
 
    mpz_clear(m);
    mpz_clear(nprim);

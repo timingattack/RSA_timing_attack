@@ -100,8 +100,8 @@ void afficher_element(ELEMENT* elem, const char* nom)
 
 void test()
 {
-	ENSEMBLE* A = initialiser_ensemble();
-    ENSEMBLE* B = initialiser_ensemble();
+	A = initialiser_ensemble();
+	B = initialiser_ensemble();
     ENSEMBLE* C = initialiser_ensemble();
     
     afficher_ensemble(A, "A");
