@@ -164,7 +164,7 @@ void run()
         run_rsa(m, nombre_iteration);
 }
 
-void run_rsa(const char mode, unsigned long int nombre_iteration)
+void run_rsa(const char mode, unsigned long int numero_iteration)
 {
     //--------------------CHRONO--------------------------
     clock_t t_cpu_deb = 0, t_cpu_fin = 0;
@@ -173,7 +173,7 @@ void run_rsa(const char mode, unsigned long int nombre_iteration)
     debut_chrono(&t_cpu_deb,&t_reel_deb);
     //----------------------------------------------------
     
-    unsigned long int iteration = nombre_iteration;
+    unsigned long int iteration = numero_iteration;
     mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout;
     mpz_init(m);        //clair
     mpz_init(e);        //exposant publique e : 1 < e < phi(n)
@@ -217,65 +217,75 @@ void run_rsa(const char mode, unsigned long int nombre_iteration)
     //gmp_printf("\nexposant privee d : %Zd\n", d);
 
 
+    //initialisation des ensembles A et B
+    A = initialiser_ensemble_global();   
+    B = initialiser_ensemble_global();
+
     //###########################-TIMING ATTACK-#################################//
     
-    //initialisation des ensembles A et B
-    A = initialiser_ensemble();   
-    B = initialiser_ensemble();
-
-    while(nombre_iteration)
+    for(bit_cible = n_size; bit_cible > 0; bit_cible--)     //le bit ciblé lors du timing attack
     {
-        printf("chiffrement n°%lu\n", iteration - nombre_iteration + 1);
-        if(iteration != nombre_iteration)
+        while(numero_iteration) 
         {
-            mpz_set_ui(m, (unsigned long int) rand());  //génération d'un nouveau message aléatoire
-            gmp_printf("message d'origine : %Z0X\n", m);
-            mpz_set(s, m);
-            mpz_set(hm, m);
-            hash(hm);
-            mpz_set(pkcs_sgn, hm);
+            printf("chiffrement n°%lu - attaque sur bit %d\n", iteration - numero_iteration + 1, bit_cible);
+            if(iteration != numero_iteration)
+            {
+                mpz_set_ui(m, (unsigned long int) rand());  //génération d'un nouveau message aléatoire
+                //gmp_printf("message d'origine : %Z0X\n", m);
+                mpz_set(s, m);
+                mpz_set(hm, m);
+                hash(hm);
+                mpz_set(pkcs_sgn, hm);
+            }
+
+            if(mode == '2')
+            {
+                //générer R
+                generer_R_montgomery(r);
+                //bezout
+                bezout(r, n, u, v, pgcd_bezout);
+                //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)\n\n", r, u, n, v);
+            }
+
+            //chiffrement de m
+            if(mode == '1')
+                chiffrement_RSA(m, e, n, c);
+            else
+                chiffrement_RSA_montgomery(m, e, n, c, v, n_size);
+            //gmp_printf("chiffré : %Z0X\n", c);
+
+            //signature de m
+            signature(pkcs_sgn, d, n, s);
+            //gmp_printf("\nsignature : %Z0X\n", s);
+
+            //vérification de s
+            verification_signature(s, e, n, hm);
+
+            //dechifrement de m
+            if(mode == '1')
+                dechiffrement_RSA(c, d, n, m);
+            else
+                dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
+            //gmp_printf("message déchiffré : %Z0X\n", m);
+
+            numero_iteration--;
+            printf("\n");
         }
 
-        if(mode == '2')
-        {
-            //générer R
-            generer_R_montgomery(r);
-            //bezout
-            bezout(r, n, u, v, pgcd_bezout);
-            //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)  \n\n", r, u, n, v);
-        }
+        printf("[%d] : ", bit_cible-1);
+        afficher_ensemble(A->bit[bit_cible-1],"A");
+        printf("[%d] : ", bit_cible-1);
+        afficher_ensemble(B->bit[bit_cible-1],"B");
 
-        //chiffrement de m
-        if(mode == '1')
-            chiffrement_RSA(m, e, n, c);
-        else
-            chiffrement_RSA_montgomery(m, e, n, c, v, n_size);
-        gmp_printf("chiffré : %Z0X\n", c);
+        numero_iteration = iteration;
 
-        //signature de m
-        signature(pkcs_sgn, d, n, s);
-        //gmp_printf("\nsignature : %Z0X\n", s);
-
-        //vérification de s
-        verification_signature(s, e, n, hm);
-
-        //dechifrement de m
-        if(mode == '1')
-            dechiffrement_RSA(c, d, n, m);
-        else
-            dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
-        gmp_printf("message déchiffré : %Z0X\n", m);
-
-        nombre_iteration--;
-        printf("\n");
-
-        afficher_ensemble(A,"A");
-        afficher_ensemble(B,"B");
+        printf("\n\n\n\n\n\n\n\n\n");
+        printf("\n\n\n\n\n\n\n\n\n");
     }
 
     //désallocation des ensembles A et B
-    free(A);
-    free(B);
+    supprimer_ensemble_global(&A, "A");
+    supprimer_ensemble_global(&B, "B");
 
     //############################-TIMING ATTACK-################################//
 

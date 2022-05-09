@@ -110,7 +110,7 @@ void chiffrement_RSA(mpz_t m, const mpz_t e, const mpz_t n, mpz_t c)
 //SHA256 hash
 void hash(mpz_t hm)
 {
-   int i = 0;
+   unsigned int i = 0;
    size_t taille = 0;   
    EVP_MD_CTX* ctx = NULL;          //message digest context
    EVP_MD* sha256 = NULL;           //message digest
@@ -327,7 +327,7 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    * sinon  t
    */
    mpz_mul(z,a_bar,b_bar); // z = abar bbar
-   mpz_mod_2exp(m,z,N_SIZE); // m = ( z mod r )
+   mpz_mod_2exp(m,z, N_SIZE); // m = ( z mod r )
    mpz_mul(m,m,nprim); //  m = ( z mod r ) * nprim
    mpz_mod_2exp(m,m, N_SIZE); // m = ( z mod r ) * nprim mod r
    mpz_mul(t,m,n ); // t = ( m * n )
@@ -335,29 +335,32 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    mpz_tdiv_q_2exp(t,t, N_SIZE); // t = ( z + m * n ) / r
 
    //###########################-TIMING ATTACK-#################################//
-
-   double tta = 0.0;                                     
+   double tta = 0.0;
    struct timespec tta_deb = {0,0}, tta_fin = {0,0};
-   debut_chrono_timing_attack(&tta_deb);
+   if(bit_cible == bit_position)
+      debut_chrono_timing_attack(&tta_deb);
+   //###########################################################################//
 
    if((mpz_cmp(t, n) == 0) || (mpz_cmp(t,n) > 0))
    {
       mpz_sub(t, t, n); // t = t - n
-      sleep(1);   //attend 1 seconde
+      
+      if(bit_cible == bit_position)
+         sleep(1);   //attend 1 seconde
    }
 
-   fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
+   //###########################################################################//
+   if(bit_cible == bit_position)
+   {
+      fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
 
-   ELEMENT* elem = initialiser_element(tta);
+      ELEMENT* elem = initialiser_element(tta);
 
-   if(elem->temps >= 1)
-      ajouter_element(elem, &A);
-   else
-      ajouter_element(elem, &B);
-
-   afficher_ensemble(A,"A");
-   afficher_ensemble(B,"B");
-
+      if(elem->temps >= 1)
+         ajouter_element_global(elem, &A, bit_cible-1);
+      else
+         ajouter_element_global(elem, &B, bit_cible-1);
+   }
    //###########################-TIMING ATTACK-#################################//
 
    mpz_clear(m);
@@ -374,19 +377,34 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    mpz_set_ui(un, 1);
    mpz_set_ui(msk, 1);
 
-   mpz_mul_2exp(rop1, a, N_SIZE); // rop1 = a * r ( r = 2^N_SIZE)
+   mpz_mul_2exp(rop1, a, N_SIZE); // rop1 = a * r (r = 2^N_SIZE)
    mpz_mod(a_bar, rop1, n); // a_bar = ( a * r ) mod n
-   mpz_mul_2exp(x_bar, un, N_SIZE); // x_bar = 1 * r ( r = 2^N_SIZE) 
+   mpz_mul_2exp(x_bar, un, N_SIZE); // x_bar = 1 * r (r = 2^N_SIZE) 
 
    for(k = taille; k > 0; k--)
    {
-      Montgomery_product(v, x_bar, x_bar, n, x_bar,N_SIZE); // square 
+      if(taille == n_size)
+         bit_position = k;
+      if(taille == n_size-1)
+      {
+         bit_position = k+1;
+         if(bit_cible < 2)
+            bit_position = bit_cible;
+      } 
+      if(taille == n_size-2)
+      {
+         bit_position = k+2;
+         if(bit_cible < 3)
+            bit_position = bit_cible;
+      }
+
+      Montgomery_product(v, x_bar, x_bar, n, x_bar, N_SIZE); // square 
       mpz_tdiv_q_2exp(rshiftr, e, k - 1);
       mpz_and(andr, rshiftr, msk);
 
       if(!(mpz_cmp_ui(andr, 1)))
       {  
-         Montgomery_product(v, a_bar, x_bar, n, x_bar,N_SIZE); // multiply 
+         Montgomery_product(v, a_bar, x_bar, n, x_bar, N_SIZE); // multiply 
       } 
    }
    Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre
@@ -403,5 +421,5 @@ void chiffrement_RSA_montgomery(mpz_t m, const mpz_t e, const mpz_t n, mpz_t c, 
 {
    if(padding)
       padding_chiffrement(m);
-   Montgomery_Exponentiation_crypt(c, m, v, e, n,N_SIZE);
+   Montgomery_Exponentiation_crypt(c, m, v, e, n, N_SIZE);
 }
