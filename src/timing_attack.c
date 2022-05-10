@@ -1,9 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
+#include <string.h>
 #include "temps.h"
 #include "timing_attack.h"
-#include "creation_des_cles.h" //pour n_size
+#include "creation_des_cles.h" 		//pour n_size
+
+//Initialisation des variables globales par défaut
+ENSEMBLE_G* A = NULL;
+ENSEMBLE_G* B = NULL;
+unsigned int bit_cible = 0;
+unsigned int bit_position = 0;
+unsigned int TIMING_ATTACK_CONFIRMED = 0;
+
+//Initialise les variables globales pour le timing attack
+void initialiser_variables_globales_timing_attack()
+{
+    A = initialiser_ensemble_global();
+    B = initialiser_ensemble_global();
+}
 
 ELEMENT* initialiser_element(const double temps)
 {
@@ -29,7 +45,7 @@ void afficher_element(const ELEMENT* elem, const char* nom)
 		return;
 	}
 
-	printf("\t\tL'element %s est %f.\n\n", nom, elem->temps);
+	printf("\t\tL'element %s est %.9f\n\n", nom, elem->temps);
 }
 
 ENSEMBLE* initialiser_ensemble()
@@ -55,6 +71,35 @@ static bool verification_ensemble_non_null(const ENSEMBLE* ens)	//vérifie si un
 		return 0;
 	else
 		return 1;
+}
+
+void afficher_ensemble(const ENSEMBLE* ens, const char* nom)
+{	
+	if(verification_ensemble_non_null(ens))
+	{
+		printf("\t\tEnsemble %s", nom);
+		
+		if(!ens->elem)
+		{
+			printf(" (taille 0) :\n\n");
+			printf("\t\t   vide\n\n");
+			return;
+		}
+		
+		unsigned long int i = 1;
+		printf(" (taille %lu) :\n\n", ens->taille);
+		printf("\t\t   [%lu]: %f\n", i, ens->elem->temps);
+		ELEMENT* e = ens->elem->suiv;
+		while(e)
+		{
+			i++;
+			printf("\t\t   [%lu]: %f\n", i, e->temps);
+			e = e->suiv;
+		}
+		printf("\n");
+		return;
+	}
+	fprintf(stderr,"\t\tL'ensemble %s n'existe pas.\n\n", nom);
 }
 
 void ajouter_element(ELEMENT* elem, ENSEMBLE** ens)
@@ -102,35 +147,6 @@ double temps_moyen(ENSEMBLE* ens)
 
 }
 */
-
-void afficher_ensemble(const ENSEMBLE* ens, const char* nom)
-{	
-	if(verification_ensemble_non_null(ens))
-	{
-		printf("\t\tEnsemble %s", nom);
-		
-		if(!ens->elem)
-		{
-			printf(" (taille 0) :\n\n");
-			printf("\t\t   vide\n\n");
-			return;
-		}
-		
-		unsigned long int i = 1;
-		printf(" (taille %lu) :\n\n", ens->taille);
-		printf("\t\t   [%lu]: %f\n", i, ens->elem->temps);
-		ELEMENT* e = ens->elem->suiv;
-		while(e)
-		{
-			i++;
-			printf("\t\t   [%lu]: %f\n", i, e->temps);
-			e = e->suiv;
-		}
-		printf("\n");
-		return;
-	}
-	fprintf(stderr,"\t\tL'ensemble %s n'existe pas.\n\n", nom);
-}
 
 void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
 {
@@ -204,11 +220,33 @@ static bool verification_ensemble_global_non_null(ENSEMBLE_G* eg)	//vérifie si 
 	return 1;
 }
 
+void afficher_ensemble_global(ENSEMBLE_G* eg, const char* nom)
+{
+	unsigned int i = 0;
+	if(verification_ensemble_global_non_null(eg))
+	{
+		for(i = 0; i < n_size; i++)
+		{
+			if(verification_ensemble_non_null(eg->bit[i]))
+			{
+				char str_bit[255];
+				char* nom_liste = malloc(sizeof(char) * strlen(nom) + sizeof(char) * (int) (log10(i+1) + 1) + 1);
+				nom_liste[0] = '\0';
+				strncat(nom_liste, nom, strlen(nom));
+				sprintf(str_bit, "%d", i+1);
+				strncat(nom_liste, str_bit, strlen(str_bit));
+				printf("%s\n", nom_liste);
+				afficher_ensemble(eg->bit[i], nom_liste);
+			}
+		}
+	}
+}
+
 void ajouter_element_global(ELEMENT* elem, ENSEMBLE_G** eg, const unsigned int i)
 {
 	if(verification_ensemble_global_non_null(*eg))
 	{
-		ajouter_element(elem, &(*eg)->bit[i]);
+		ajouter_element(elem, &((*eg)->bit[i]));
 	}
 }
 

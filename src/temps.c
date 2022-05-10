@@ -28,7 +28,7 @@ void afficher_temps_reel(double *temps_reel) {
 *	Fonction qui permet afficher le temps CPU écoulé depuis le début de l'exécution.
 */
 void afficher_temps_cpu(double *temps_cpu) {
-	printf("temps CPU = %.4f secondes\n",*temps_cpu);
+	printf("temps CPU = %.12f secondes\n",*temps_cpu);
 }
 
 /*
@@ -47,8 +47,8 @@ void fin_chrono(double *ttc, clock_t tdc, clock_t tfc, double *ttr, struct times
 	temps_reel(&tfr);
 	*ttc = (tfc - tdc) * 1e-6;
 	*ttr= (tfr.tv_sec - tdr.tv_sec);
-	afficher_temps_cpu(ttc);
-	afficher_temps_reel(ttr);
+	//afficher_temps_cpu(ttc);
+	//afficher_temps_reel(ttr);
 }
 
 /*
@@ -64,5 +64,6 @@ void debut_chrono_timing_attack(struct timespec *tda) {
 void fin_chrono_timing_attack(double *tta, struct timespec tda, struct timespec tfa) {
 	temps_reel(&tfa);
 	*tta= (tfa.tv_sec - tda.tv_sec);
-	afficher_temps_reel(tta);
 }
+
+

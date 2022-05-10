@@ -7,6 +7,9 @@
 //nombre de bits qui seront utilisés pour p et q
 #define PRIME_NUMBER_SIZE prime_size
 
+//unsigned int prime_size = 0;
+//unsigned int n_size = 0;
+
 void generer_npq(mpz_t n, mpz_t p, mpz_t q)
 {
     mpz_init(n);
