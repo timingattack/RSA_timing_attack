@@ -1,7 +1,8 @@
 #ifndef _TIMING_ATTACK_H_
 #define _TIMING_ATTACK_H_
 
-#include "creation_des_cles.h" 
+#include <errno.h>
+#include "temps.h"
 
 typedef struct element {
 	double temps;
@@ -14,7 +15,7 @@ typedef struct ensemble {
 	unsigned long int taille;
 } ENSEMBLE; 			//représente l'ensemble A ou B (pour un bit) sous la forme d'une simple liste chaînée.
 
-typedef struct ensemble_globale {
+typedef struct ensemble_global {
 	ENSEMBLE** bit;
 } ENSEMBLE_G;			//représente l'ensemble A et B (pour tous les bits) sous la forme d'un tableau de listes simplements chaînées.
 						//tableau de taille n, liste de taille >= nombre d'itération
@@ -36,12 +37,17 @@ ENSEMBLE_G* initialiser_ensemble_global();
 void ajouter_element_global(ELEMENT *elem, ENSEMBLE_G** eg, const unsigned int bit);
 ELEMENT* retourner_element_global(ENSEMBLE_G** eg, const unsigned int bit);
 void supprimer_ensemble_global(ENSEMBLE_G** eg, const char* nom);
+void afficher_ensemble_global(ENSEMBLE_G* eg, const char* nom);
 
 //Variables globales
-ENSEMBLE_G* A;
-ENSEMBLE_G* B;
-unsigned int bit_position;	//le bit courant lors du timing attack
-unsigned int bit_cible;		//le bit ciblé lors du timing attack
+extern ENSEMBLE_G* A;
+extern ENSEMBLE_G* B;
+extern unsigned int bit_cible;					//le bit ciblé lors du timing attack
+extern unsigned int bit_position;				//le bit courant lors du timing attack
+extern unsigned int TIMING_ATTACK_CONFIRMED;	//0 = désactive le timing attack, 1 = active le timing attack
+
+//Fonctions pour les variables globales
+void initialiser_variables_globales_timing_attack();
 
 void test(); 			//fonction de test pour tester les fonctions (à faire: à retirer lorsque timing attack fini)
 
