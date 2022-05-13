@@ -1,7 +1,7 @@
 #ifndef _TIMING_ATTACK_H_
 #define _TIMING_ATTACK_H_
 
-#define EPSILON 3e-6	//borne de répartition des mesures
+#define EPSILON 4e-6	//borne de répartition des mesures
 
 typedef struct element {
 	double temps;
@@ -12,7 +12,8 @@ typedef struct liste {
 	ELEMENT* elem;
 	ELEMENT* fin;
 	unsigned long int taille;
-	long double temps_moyen;
+	double temps_moyen;
+	double temps_total;
 } LISTE; 				//représente la liste des mesures (pour un bit) sous la forme d'une simple liste chaînée.
 
 typedef struct ensemble {
@@ -27,19 +28,23 @@ typedef struct ensemble {
 ELEMENT* initialiser_element(const double temps);
 void afficher_element(const ELEMENT* elem, const char* nom);
 
-//Fonctions pour les ensembles
+//Fonctions pour les listes
 LISTE* initialiser_lsite();
 void ajouter_element_liste(ELEMENT* elem, LISTE** ens);
 ELEMENT* retourner_element_liste(LISTE** ens);
-void afficher_liste(const LISTE* ens, const char* nom);
+void afficher_liste_complete(const LISTE* ens, const char* nom);
+void afficher_liste_simple(const LISTE* ens, const char* nom);
 void supprimer_liste(LISTE** ens, const char* nom);
+void calculer_temps_moyen_liste(LISTE** liste);
 
-//Fonctions pour les ensembles globaux
+//Fonctions pour les ensembles
 ENSEMBLE* initialiser_ensemble();
 void ajouter_element(ELEMENT *elem, ENSEMBLE** eg, const unsigned int bit);
 ELEMENT* retourner_element(ENSEMBLE** eg, const unsigned int bit);
 void supprimer_ensemble(ENSEMBLE** eg, const char* nom);
-void afficher_ensemble(ENSEMBLE* eg, const char* nom);
+void afficher_ensemble_complet(ENSEMBLE* eg, const char* nom);
+void afficher_ensemble_simple(ENSEMBLE* eg, const char* nom);
+void calculer_temps_moyen(ENSEMBLE** ens);
 
 //Variables globales
 extern ENSEMBLE* A;
