@@ -76,7 +76,7 @@ void afficher_ensemble(const ENSEMBLE* ens, const char* nom)
 {	
 	if(verification_ensemble_non_null(ens))
 	{
-		printf("\t\tEnsemble %s", nom);
+		printf("\t\t%s", nom);
 		
 		if(!ens->elem)
 		{
@@ -229,12 +229,19 @@ void afficher_ensemble_global(ENSEMBLE_G* eg, const char* nom)
 			if(verification_ensemble_non_null(eg->bit[i]))
 			{
 				char str_bit[255];
-				char* nom_liste = malloc(sizeof(char) * strlen(nom) + sizeof(char) * (int) (log10(i+1) + 1) + 1);
-				nom_liste[0] = '\0';
-				strncat(nom_liste, nom, strlen(nom));
+				char nom_liste[9] = "bit "; 
+				char* nom_ensemble = malloc(sizeof(char) * strlen(nom) + sizeof(char) * 2 + sizeof(char) * (int) (log10(i+1) + 1) + 1);
+			
+				nom_ensemble[0] = '\0';
 				sprintf(str_bit, "%d", i+1);
-				strncat(nom_liste, str_bit, strlen(str_bit));
-				printf("%s\n", nom_liste);
+				
+				strncat(nom_ensemble, nom, strlen(nom));
+				strncat(nom_ensemble, "[", 1);
+				strncat(nom_ensemble, str_bit, strlen(str_bit));
+				strncat(nom_ensemble, "]", 1);
+				printf("%s\n", nom_ensemble);
+				
+				strncat(nom_liste, str_bit, strlen(str_bit));	
 				afficher_ensemble(eg->bit[i], nom_liste);
 			}
 		}
