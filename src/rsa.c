@@ -198,7 +198,10 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     gmp_printf("message d'origine : %Z0X\n", m);
     mpz_set(s, m);
     mpz_set(hm, m);
-    hash(hm);
+    
+    if(padding)
+        hash(hm);
+    
     //gmp_printf("\nhash : %Z0X\n", hm);
     mpz_set(pkcs_sgn, hm);
 
@@ -228,8 +231,6 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //{
         while(numero_iteration)
         {
-            bit_cible = n_size;
-
             if(iteration != numero_iteration)
             {
                 printf("chiffrement n°%lu\n", iteration - numero_iteration + 1);
@@ -259,7 +260,7 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
             //signature de m
             signature(pkcs_sgn, d, n, s);
-            gmp_printf("\nsignature : %Z0X\n", s);
+            //gmp_printf("\nsignature : %Z0X\n", s);
 
             //vérification de s
             verification_signature(s, e, n, hm);
@@ -273,13 +274,13 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
                 dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
             gmp_printf("message déchiffré : %Z0X\n", m);
 
-            TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
+            //TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
+            
             numero_iteration--;
-
             printf("\n");
         }
 
-        //afficher_ensemble_global(A, "A");
+        afficher_ensemble_global(A, "A");
         printf("\n");
         //afficher_ensemble_global(B, "B");
 
@@ -290,8 +291,9 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
     printf("taille de d : %u\n", taille);
     printf("taille de n : %u\n", n_size);
+    gmp_printf("\nd : %Zd\n", d);
     printf("\n");
-    
+
     //désallocation des ensembles A et B
     supprimer_ensemble_global(&A, "A");
     supprimer_ensemble_global(&B, "B");
@@ -317,7 +319,4 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //-----------------------------------FIN_CHRONO-----------------------------------------
     fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);
     printf("\n");
-
-    gmp_printf("\nd dec : %Zd\n", d);
-    gmp_printf("\nd hex : %ZX\n", d);
 }

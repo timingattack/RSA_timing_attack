@@ -338,7 +338,6 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    clock_t tta_cpu_deb = 0, tta_cpu_fin = 0;
    struct timespec tta_deb = {0,0}, tta_fin = {0,0};
 
-   //if(bit_cible == bit_position)
    if(TIMING_ATTACK_CONFIRMED)
       debut_chrono(&tta_cpu_deb,&tta_deb);
       //debut_chrono_timing_attack(&tta_deb);
@@ -358,8 +357,7 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    //{
    if(TIMING_ATTACK_CONFIRMED)
    {
-      /*if(in_if)
-         printf("bit %d\n", bit_position);*/
+      //printf("target_bit %d\n", target_bit);
       fin_chrono(&tta_cpu,tta_cpu_deb,tta_cpu_fin,&tta,tta_deb,tta_fin);
       //printf("\n");
       
@@ -369,10 +367,10 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
       
       /*if(in_if)
          afficher_element(elem, "elem");*/
-      if(elem->temps >= 0.000002)
-         ajouter_element_global(elem, &A, bit_position);
+      if(elem->temps >= EPSILON)
+         ajouter_element_global(elem, &A, target_bit);
       else
-         ajouter_element_global(elem, &B, bit_position);
+         ajouter_element_global(elem, &B, target_bit);
    }
    //}
    //###########################################################################//
@@ -394,45 +392,25 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    mpz_mul_2exp(rop1, a, N_SIZE); // rop1 = a * r (r = 2^N_SIZE)
    mpz_mod(a_bar, rop1, n); // a_bar = ( a * r ) mod n
    mpz_mul_2exp(x_bar, un, N_SIZE); // x_bar = 1 * r (r = 2^N_SIZE) 
-
-   bit_cible = n_size;
+  
    for(k = taille; k > 0; k--)
    {
-   //###########################-TIMING ATTACK-#################################//
-      if(taille == n_size)
-         bit_position = k;
-      if(taille == n_size-1)
-      {
-         bit_position = k+1;
-         if(bit_cible < 2)
-            bit_position = bit_cible;
-      } 
-      if(taille == n_size-2)
-      {
-         bit_position = k+2;
-         if(bit_position < 3)
-            bit_position = bit_cible;
-
-         printf("k : %u\n", k);
-         printf("bit pos : %u ", bit_position);
-         printf("bit cible : %u\n\n\n", bit_cible);
-      }
-   //###########################################################################//
+      //###########################-TIMING ATTACK-#################################//
+      target_bit = k;
+      //###########################################################################//
 
       Montgomery_product(v, x_bar, x_bar, n, x_bar, N_SIZE); // square 
       mpz_tdiv_q_2exp(rshiftr, e, k - 1);
       mpz_and(andr, rshiftr, msk);
 
-      TIMING_ATTACK_CONFIRMED = 1;  //active le timing attack
-
       if(!(mpz_cmp_ui(andr, 1)))
       {  
          Montgomery_product(v, a_bar, x_bar, n, x_bar, N_SIZE); // multiply 
       }
-
-      TIMING_ATTACK_CONFIRMED = 0;  //active le timing attack
-      bit_cible--;
    }
+
+   TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
+   
    Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre
 
    mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);

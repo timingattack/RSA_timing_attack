@@ -10,8 +10,7 @@
 //Initialisation des variables globales par défaut
 ENSEMBLE_G* A = NULL;
 ENSEMBLE_G* B = NULL;
-unsigned int bit_cible = 0;
-unsigned int bit_position = 0;
+unsigned int target_bit = 0;
 unsigned int TIMING_ATTACK_CONFIRMED = 0;
 
 //Initialise les variables globales pour le timing attack
