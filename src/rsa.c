@@ -280,9 +280,9 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
             printf("\n");
         }
 
-        afficher_ensemble_global(A, "A");
+        afficher_ensemble(A, "A");
         printf("\n");
-        //afficher_ensemble_global(B, "B");
+        //afficher_ensemble(B, "B");
 
         //numero_iteration = iteration;
 
@@ -295,8 +295,8 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     printf("\n");
 
     //désallocation des ensembles A et B
-    supprimer_ensemble_global(&A, "A");
-    supprimer_ensemble_global(&B, "B");
+    supprimer_ensemble(&A, "A");
+    supprimer_ensemble(&B, "B");
 
     //############################-TIMING ATTACK-################################//
 

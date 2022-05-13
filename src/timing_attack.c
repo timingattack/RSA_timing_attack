@@ -8,16 +8,16 @@
 #include "creation_des_cles.h" 		//pour n_size
 
 //Initialisation des variables globales par défaut
-ENSEMBLE_G* A = NULL;
-ENSEMBLE_G* B = NULL;
+ENSEMBLE* A = NULL;
+ENSEMBLE* B = NULL;
 unsigned int target_bit = 0;
 unsigned int TIMING_ATTACK_CONFIRMED = 0;
 
 //Initialise les variables globales pour le timing attack
 void initialiser_variables_globales_timing_attack()
 {
-    A = initialiser_ensemble_global();
-    B = initialiser_ensemble_global();
+    A = initialiser_ensemble();
+    B = initialiser_ensemble();
 }
 
 ELEMENT* initialiser_element(const double temps)
@@ -47,38 +47,38 @@ void afficher_element(const ELEMENT* elem, const char* nom)
 	printf("\t\tL'element %s est %.9f\n\n", nom, elem->temps);
 }
 
-ENSEMBLE* initialiser_ensemble()
+LISTE* initialiser_liste()
 {
-	ENSEMBLE* ens = malloc(sizeof(ENSEMBLE));
+	LISTE* liste = malloc(sizeof(LISTE));
 	
-	if(!ens)
+	if(!liste)
 	{
-		fprintf(stderr, "Erreur lors de l'allocation de l'ensemble.\n");
+		fprintf(stderr, "Erreur lors de l'allocation de la liste.\n");
 		exit(11);
 	}
 
-	ens->elem = NULL;
-	ens->fin = ens->elem;
-	ens->taille = 0;
+	liste->elem = NULL;
+	liste->fin = liste->elem;
+	liste->taille = 0;
 
-	return ens;
+	return liste;
 }
 
-static bool verification_ensemble_non_null(const ENSEMBLE* ens)	//vérifie si un ensemble existe
+static bool verification_liste_non_null(const LISTE* liste)	//vérifie si une liste existe
 {
-	if(!ens)
+	if(!liste)
 		return 0;
 	else
 		return 1;
 }
 
-void afficher_ensemble(const ENSEMBLE* ens, const char* nom)
+void afficher_liste(const LISTE* liste, const char* nom)
 {	
-	if(verification_ensemble_non_null(ens))
+	if(verification_liste_non_null(liste))
 	{
 		printf("\t\t%s", nom);
 		
-		if(!ens->elem)
+		if(!liste->elem)
 		{
 			printf(" (taille 0) :\n\n");
 			printf("\t\t   vide\n\n");
@@ -86,9 +86,9 @@ void afficher_ensemble(const ENSEMBLE* ens, const char* nom)
 		}
 		
 		unsigned long int i = 1;
-		printf(" (taille %lu) :\n\n", ens->taille);
-		printf("\t\t   [%lu]: %f\n", i, ens->elem->temps);
-		ELEMENT* e = ens->elem->suiv;
+		printf(" (taille %lu) :\n\n", liste->taille);
+		printf("\t\t   [%lu]: %f\n", i, liste->elem->temps);
+		ELEMENT* e = liste->elem->suiv;
 		while(e)
 		{
 			i++;
@@ -98,41 +98,41 @@ void afficher_ensemble(const ENSEMBLE* ens, const char* nom)
 		printf("\n");
 		return;
 	}
-	fprintf(stderr,"\t\tL'ensemble %s n'existe pas.\n\n", nom);
+	fprintf(stderr,"\t\tLa liste %s n'existe pas.\n\n", nom);
 }
 
-void ajouter_element(ELEMENT* elem, ENSEMBLE** ens)
+void ajouter_element_liste(ELEMENT* elem, LISTE** liste)
 {
-	if(verification_ensemble_non_null(*ens))
+	if(verification_liste_non_null(*liste))
 	{
-		if((*ens)->taille == 0)
+		if((*liste)->taille == 0)
 		{
-			(*ens)->elem = elem;		//le premier élément
-			(*ens)->fin = (*ens)->elem;	//le premier élément est aussi le dernier
-			(*ens)->taille++;
+			(*liste)->elem = elem;		//le premier élément
+			(*liste)->fin = (*liste)->elem;	//le premier élément est aussi le dernier
+			(*liste)->taille++;
 		} else {
-			(*ens)->fin->suiv = elem;	//l'élément suivant après l'avant dernier élément
-			(*ens)->fin = elem;			//le dernier élément
-			(*ens)->taille++;
+			(*liste)->fin->suiv = elem;	//l'élément suivant après l'avant dernier élément
+			(*liste)->fin = elem;			//le dernier élément
+			(*liste)->taille++;
 		}
 	}
 }
 
-ELEMENT* retourner_element(ENSEMBLE** ens)	//retourne le premier élément de la liste
+ELEMENT* retourner_element_liste(LISTE** liste)	//retourne le premier élément de la liste
 {
-	if(verification_ensemble_non_null(*ens))
+	if(verification_liste_non_null(*liste))
 	{
-		if((*ens)->elem == NULL)
+		if((*liste)->elem == NULL)
 			return NULL;
 		
 		ELEMENT* premier = initialiser_element(0.0);
-		premier = (*ens)->elem;
+		premier = (*liste)->elem;
 
 		ELEMENT* elem = initialiser_element(premier->temps);
-		(*ens)->elem = (*ens)->elem->suiv;
+		(*liste)->elem = (*liste)->elem->suiv;
 		
 		premier->suiv = NULL;
-		(*ens)->taille--;
+		(*liste)->taille--;
 		free(premier);
 
 		return elem;
@@ -141,77 +141,77 @@ ELEMENT* retourner_element(ENSEMBLE** ens)	//retourne le premier élément de la
 }
 
 /*
-double temps_moyen(ENSEMBLE* ens)
+double temps_moyen(LISTE* liste)
 {
 
 }
 */
 
-void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
+void supprimer_liste(LISTE** liste, const char* nom)
 {
-	if(verification_ensemble_non_null(*ens))
+	if(verification_liste_non_null(*liste))
 	{
-		if(!(*ens)->elem)
+		if(!(*liste)->elem)
 		{
-			*ens = NULL;
-			free((*ens)->elem);
-			free(*ens);
+			*liste = NULL;
+			free((*liste)->elem);
+			free(*liste);
 			printf("\t\tLa liste %s a ete supprimee.\n\n", nom);
 			return;
 		}
 
-		ELEMENT* e = (*ens)->elem->suiv;
+		ELEMENT* e = (*liste)->elem->suiv;
 		while(e)
 		{
-			(*ens)->elem->suiv = NULL;
-			(*ens)->elem = NULL;
-			free((*ens)->elem);
-			(*ens)->taille--;
-			//printf("\t\tL'element %lu a ete supprime.\n", (*ens)->taille + 1);
-			(*ens)->elem = e;
+			(*liste)->elem->suiv = NULL;
+			(*liste)->elem = NULL;
+			free((*liste)->elem);
+			(*liste)->taille--;
+			//printf("\t\tL'element %lu a ete supprime.\n", (*liste)->taille + 1);
+			(*liste)->elem = e;
 			e = e->suiv;
 		}
-		(*ens)->elem = NULL;
-		free((*ens)->elem);
-		(*ens)->taille--;
-		//printf("\t\tL'element %lu a ete supprime.\n", (*ens)->taille + 1);
-		*ens = NULL;
+		(*liste)->elem = NULL;
+		free((*liste)->elem);
+		(*liste)->taille--;
+		//printf("\t\tL'element %lu a ete supprime.\n", (*liste)->taille + 1);
+		*liste = NULL;
 	}
-	free(*ens);
+	free(*liste);
 	printf("\t\tLa liste %s a ete supprimee.\n\n", nom);
 }
 
-ENSEMBLE_G* initialiser_ensemble_global()
+ENSEMBLE* initialiser_ensemble()
 {
 	unsigned int i = 0;
 
-	ENSEMBLE_G* eg = malloc(sizeof(ENSEMBLE_G));	
+	ENSEMBLE* ens = malloc(sizeof(ENSEMBLE));	
 	
-	if(!eg)
+	if(!ens)
 	{
-		fprintf(stderr, "Erreur lors de l'allocation de l'ensemble global.\n");
+		fprintf(stderr, "Erreur lors de l'allocation de l'ensemble.\n");
 		exit(12);
 	}
 
-	eg->bit = malloc(sizeof(ENSEMBLE) * n_size);
+	ens->bit = malloc(sizeof(LISTE) * n_size);
 	
-	if(!eg->bit)
+	if(!ens->bit)
 	{
-		fprintf(stderr, "Erreur lors de l'allocation de l'ensemble global.\n");
+		fprintf(stderr, "Erreur lors de l'allocation de l'ensemble.\n");
 		exit(13);
 	}
 
 	for(i = 0; i < n_size; i++)
 	{
-		eg->bit[i] = initialiser_ensemble();
+		ens->bit[i] = initialiser_liste();
 	}
 
-	return eg;
+	return ens;
 }
 
-static bool verification_ensemble_global_non_null(ENSEMBLE_G* eg)	//vérifie si un ensemble global existe
+static bool verification_ensemble_non_null(ENSEMBLE* ens)	//vérifie si un ensemble global existe
 {
-	if(!eg)
+	if(!ens)
 	{
 		return 0;
 	}
@@ -219,19 +219,19 @@ static bool verification_ensemble_global_non_null(ENSEMBLE_G* eg)	//vérifie si 
 	return 1;
 }
 
-void afficher_ensemble_global(ENSEMBLE_G* eg, const char* nom)
+void afficher_ensemble(ENSEMBLE* ens, const char* nom)
 {
 	unsigned int i = 0;
-	if(verification_ensemble_global_non_null(eg))
+	if(verification_ensemble_non_null(ens))
 	{
 		for(i = 0; i < n_size; i++)
 		{
-			if(verification_ensemble_non_null(eg->bit[i]))
+			if(verification_liste_non_null(ens->bit[i]))
 			{
 				char str_bit[255];
 				char nom_liste[9] = "bit "; 
 				char* nom_ensemble = malloc(sizeof(char) * strlen(nom) + sizeof(char) * 2 + sizeof(char) * (int) (log10(i+1) + 1) + 1);
-			
+
 				nom_ensemble[0] = '\0';
 				sprintf(str_bit, "%d", i+1);
 				
@@ -241,75 +241,75 @@ void afficher_ensemble_global(ENSEMBLE_G* eg, const char* nom)
 				strncat(nom_ensemble, "]", 1);
 				printf("%s\n", nom_ensemble);
 				
-				strncat(nom_liste, str_bit, strlen(str_bit));	
-				afficher_ensemble(eg->bit[i], nom_liste);
+				strncat(nom_liste, str_bit, strlen(str_bit));
+				afficher_liste(ens->bit[i], nom_liste);
 			}
 		}
 	}
 }
 
-void ajouter_element_global(ELEMENT* elem, ENSEMBLE_G** eg, const unsigned int i)
+void ajouter_element(ELEMENT* elem, ENSEMBLE** ens, const unsigned int i)
 {
-	if(verification_ensemble_global_non_null(*eg))
+	if(verification_ensemble_non_null(*ens))
 	{
-		ajouter_element(elem, &((*eg)->bit[i]));
+		ajouter_element_liste(elem, &((*ens)->bit[i]));
 	}
 }
 
-ELEMENT* retourner_element_global(ENSEMBLE_G** eg, const unsigned int i)
+ELEMENT* retourner_element(ENSEMBLE** ens, const unsigned int i)
 {
-	if(verification_ensemble_global_non_null(*eg))
+	if(verification_ensemble_non_null(*ens))
 	{
 		ELEMENT* e = initialiser_element(0.0);
-		e = retourner_element(&(*eg)->bit[i]);
+		e = retourner_element_liste(&(*ens)->bit[i]);
 		return e;
 	}
 
-	fprintf(stderr,"Erreur : L'ensemble global n'existe pas.\n");
+	fprintf(stderr,"Erreur : L'ensemble n'existe pas.\n");
 
 	return NULL;
 }
 
-void supprimer_ensemble_global(ENSEMBLE_G** eg, const char* nom)
+void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
 {
-	if(verification_ensemble_global_non_null(*eg))
+	if(verification_ensemble_non_null(*ens))
 	{
 		unsigned int i = 0;
 		
 		for(i = 0; i > n_size; i++)
 		{
-			supprimer_ensemble(&(*eg)->bit[i], nom);
+			supprimer_liste(&(*ens)->bit[i], nom);
 		}
-		*eg = NULL;
+		*ens = NULL;
 	}
-	free(*eg);
-	printf("\t\tLa liste globale %s a ete supprimee.\n\n", nom);
+	free(*ens);
+	printf("\t\tL'ensemble %s a ete supprimee.\n\n", nom);
 }
 
 void test()
 {
 	n_size = 3;	//nombre d'ensemble (liste) dans A et B
-	A = initialiser_ensemble_global();
-	B = initialiser_ensemble_global();
+	A = initialiser_ensemble();
+	B = initialiser_ensemble();
 
 	for(unsigned int i = 0; i < 3; i++){
 		printf("[%d] : ", i);
-		afficher_ensemble(A->bit[i], "A");
+		afficher_liste(A->bit[i], "A");
 	}
 	printf("\n");
 
 	for(unsigned int i = 0; i < 3; i++){
 		printf("[%d] : ", i);
-		afficher_ensemble(B->bit[i], "B");
+		afficher_liste(B->bit[i], "B");
 	}
 	printf("\n");
 
-    ENSEMBLE* C = initialiser_ensemble();
+    LISTE* C = initialiser_liste();
     
     printf("Avant ajout des elements.\n");
-    afficher_ensemble(A->bit[0], "A");
-    afficher_ensemble(B->bit[0], "B");
-    afficher_ensemble(C, "C");
+    afficher_liste(A->bit[0], "A");
+    afficher_liste(B->bit[0], "B");
+    afficher_liste(C, "C");
     
     ELEMENT* e1 = initialiser_element(12);
     ELEMENT* e2 = initialiser_element(79);
@@ -317,40 +317,40 @@ void test()
     ELEMENT* e4 = initialiser_element(56);
     ELEMENT* e5 = initialiser_element(93);
     
-    ajouter_element_global(e1, &A, 0);
-    ajouter_element_global(e2, &B, 0);
-    ajouter_element_global(e3, &B, 0);
-    ajouter_element_global(e4, &A, 0);
-    ajouter_element_global(e5, &B, 0);
+    ajouter_element(e1, &A, 0);
+    ajouter_element(e2, &B, 0);
+    ajouter_element(e3, &B, 0);
+    ajouter_element(e4, &A, 0);
+    ajouter_element(e5, &B, 0);
 
     printf("Apres ajout des elements.\n");
-    afficher_ensemble(A->bit[0], "A");
-    afficher_ensemble(B->bit[0], "B");
-    afficher_ensemble(C, "C");
+    afficher_liste(A->bit[0], "A");
+    afficher_liste(B->bit[0], "B");
+    afficher_liste(C, "C");
 
-    ELEMENT* ea = retourner_element_global(&A, 0);
-    ELEMENT* eb = retourner_element_global(&B, 0);
-    ELEMENT* ec = retourner_element(&C);
+    ELEMENT* ea = retourner_element(&A, 0);
+    ELEMENT* eb = retourner_element(&B, 0);
+    ELEMENT* ec = retourner_element_liste(&C);
 
     printf("Apres retour du premier element.\n");
-    afficher_ensemble(A->bit[0], "A");
-    afficher_ensemble(B->bit[0], "B");
-    afficher_ensemble(C, "C");
+    afficher_liste(A->bit[0], "A");
+    afficher_liste(B->bit[0], "B");
+    afficher_liste(C, "C");
     printf("Premier element retourne.\n");
     afficher_element(ea, "A");
     afficher_element(eb, "B");
     afficher_element(ec, "C");
     
-    printf("Suppression des ensembles.\n");
-    supprimer_ensemble(&C, "C");
+    printf("Suppression des listes.\n");
+    supprimer_liste(&C, "C");
 
-    printf("Apres suppression des ensembles.\n");
-    afficher_ensemble(C, "C");
+    printf("Apres suppression des listes.\n");
+    afficher_liste(C, "C");
     afficher_element(ea, "A");
     afficher_element(eb, "B");
     afficher_element(ec, "C");
 
-    printf("Suppression des ensembles globaux.\n");
-    supprimer_ensemble_global(&A, "A");
-    supprimer_ensemble_global(&B, "B");
+    printf("Suppression des ensembles.\n");
+    supprimer_ensemble(&A, "A");
+    supprimer_ensemble(&B, "B");
 }

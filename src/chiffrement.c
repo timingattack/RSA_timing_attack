@@ -368,9 +368,9 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
       /*if(in_if)
          afficher_element(elem, "elem");*/
       if(elem->temps >= EPSILON)
-         ajouter_element_global(elem, &A, target_bit);
+         ajouter_element(elem, &A, target_bit);
       else
-         ajouter_element_global(elem, &B, target_bit);
+         ajouter_element(elem, &B, target_bit);
    }
    //}
    //###########################################################################//
