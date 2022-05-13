@@ -280,9 +280,9 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
             printf("\n");
         }
 
-        afficher_ensemble(A, "A");
+        afficher_ensemble_simple(A, "A");
         printf("\n");
-        //afficher_ensemble(B, "B");
+        //afficher_ensemble_simple(B, "B");
 
         //numero_iteration = iteration;
 

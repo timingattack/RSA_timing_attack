@@ -60,6 +60,8 @@ LISTE* initialiser_liste()
 	liste->elem = NULL;
 	liste->fin = liste->elem;
 	liste->taille = 0;
+	liste->temps_moyen = 0.0;
+	liste->temps_total = 0.0;
 
 	return liste;
 }
@@ -72,7 +74,7 @@ static bool verification_liste_non_null(const LISTE* liste)	//vérifie si une li
 		return 1;
 }
 
-void afficher_liste(const LISTE* liste, const char* nom)
+void afficher_liste_complete(const LISTE* liste, const char* nom)
 {	
 	if(verification_liste_non_null(liste))
 	{
@@ -80,13 +82,13 @@ void afficher_liste(const LISTE* liste, const char* nom)
 		
 		if(!liste->elem)
 		{
-			printf(" (taille 0) :\n\n");
+			printf(" (taille 0) (temps moyen 0) (temps total 0) :\n\n");
 			printf("\t\t   vide\n\n");
 			return;
 		}
 		
 		unsigned long int i = 1;
-		printf(" (taille %lu) :\n\n", liste->taille);
+		printf(" (taille %lu) (temps moyen %f) (temps total %f) :\n\n", liste->taille, liste->temps_moyen, liste->temps_total);
 		printf("\t\t   [%lu]: %f\n", i, liste->elem->temps);
 		ELEMENT* e = liste->elem->suiv;
 		while(e)
@@ -101,20 +103,38 @@ void afficher_liste(const LISTE* liste, const char* nom)
 	fprintf(stderr,"\t\tLa liste %s n'existe pas.\n\n", nom);
 }
 
+void afficher_liste_simple(const LISTE* liste, const char* nom)
+{	
+	if(verification_liste_non_null(liste))
+	{
+		printf("%s", nom);
+		
+		if(!liste->elem)
+		{
+			printf("\n\ttaille : 0\n\ttemps moyen : 0\n\ttemps total : 0\n\n");
+			return;
+		}
+		
+		printf("\n\ttaille : %lu\n\ttemps moyen %f\n\ttemps total : %.6f\n\n", liste->taille, liste->temps_moyen, liste->temps_total);
+		return;
+	}
+	fprintf(stderr,"\t\tLa liste %s n'existe pas.\n\n", nom);
+}
+
 void ajouter_element_liste(ELEMENT* elem, LISTE** liste)
 {
 	if(verification_liste_non_null(*liste))
 	{
 		if((*liste)->taille == 0)
 		{
-			(*liste)->elem = elem;		//le premier élément
+			(*liste)->elem = elem;			//le premier élément
 			(*liste)->fin = (*liste)->elem;	//le premier élément est aussi le dernier
-			(*liste)->taille++;
 		} else {
-			(*liste)->fin->suiv = elem;	//l'élément suivant après l'avant dernier élément
+			(*liste)->fin->suiv = elem;		//l'élément suivant après l'avant dernier élément
 			(*liste)->fin = elem;			//le dernier élément
-			(*liste)->taille++;
 		}
+		(*liste)->taille++;
+		(*liste)->temps_total += elem->temps; 
 	}
 }
 
@@ -140,12 +160,13 @@ ELEMENT* retourner_element_liste(LISTE** liste)	//retourne le premier élément 
 	return NULL;
 }
 
-/*
-double temps_moyen(LISTE* liste)
+void calculer_temps_moyen_liste(LISTE** liste)
 {
-
+	if(verification_liste_non_null(*liste))
+	{
+		(*liste)->temps_moyen = (*liste)->temps_total / (*liste)->taille;
+	}
 }
-*/
 
 void supprimer_liste(LISTE** liste, const char* nom)
 {
@@ -219,7 +240,7 @@ static bool verification_ensemble_non_null(ENSEMBLE* ens)	//vérifie si un ensem
 	return 1;
 }
 
-void afficher_ensemble(ENSEMBLE* ens, const char* nom)
+void afficher_ensemble_complet(ENSEMBLE* ens, const char* nom)
 {
 	unsigned int i = 0;
 	if(verification_ensemble_non_null(ens))
@@ -233,7 +254,7 @@ void afficher_ensemble(ENSEMBLE* ens, const char* nom)
 				char* nom_ensemble = malloc(sizeof(char) * strlen(nom) + sizeof(char) * 2 + sizeof(char) * (int) (log10(i+1) + 1) + 1);
 
 				nom_ensemble[0] = '\0';
-				sprintf(str_bit, "%d", i+1);
+				sprintf(str_bit, "%d", i);
 				
 				strncat(nom_ensemble, nom, strlen(nom));
 				strncat(nom_ensemble, "[", 1);
@@ -241,8 +262,43 @@ void afficher_ensemble(ENSEMBLE* ens, const char* nom)
 				strncat(nom_ensemble, "]", 1);
 				printf("%s\n", nom_ensemble);
 				
+				sprintf(str_bit, "%d", i+1);
 				strncat(nom_liste, str_bit, strlen(str_bit));
-				afficher_liste(ens->bit[i], nom_liste);
+				afficher_liste_complete(ens->bit[i], nom_liste);
+			}
+		}
+	}
+}
+
+void afficher_ensemble_simple(ENSEMBLE* ens, const char* nom)
+{
+	unsigned int i = 0;
+	if(verification_ensemble_non_null(ens))
+	{
+		for(i = 0; i < n_size; i++)
+		{
+			if(verification_liste_non_null(ens->bit[i]))
+			{
+				char str_bit[255];
+				char nom_liste[9] = "bit "; 
+				char* nom_ensemble = malloc(sizeof(char) * strlen(nom) + sizeof(char) * 5 + sizeof(char) * 9 + sizeof(char) * (int) (log10(i+1) + 1) + 1);
+
+				nom_ensemble[0] = '\0';
+				sprintf(str_bit, "%d", i);
+				
+				strncat(nom_ensemble, nom, strlen(nom));
+				strncat(nom_ensemble, "[", 1);
+				strncat(nom_ensemble, str_bit, strlen(str_bit));
+				strncat(nom_ensemble, "]", 1);
+				strncat(nom_ensemble, " : ", 3);
+
+				sprintf(str_bit, "%d", i+1);
+				strncat(nom_liste, str_bit, strlen(str_bit));
+
+				strncat(nom_ensemble, nom_liste, strlen(nom_liste));
+				printf("%s\n", nom_ensemble);
+
+				afficher_liste_simple(ens->bit[i], "");
 			}
 		}
 	}
@@ -270,6 +326,18 @@ ELEMENT* retourner_element(ENSEMBLE** ens, const unsigned int i)
 	return NULL;
 }
 
+void calculer_temps_moyen(ENSEMBLE** ens)
+{
+	unsigned int i;
+	if(verification_ensemble_non_null(*ens))
+	{
+		for(i = 0; i < n_size; i++)
+		{
+			calculer_temps_moyen_liste(&(*ens)->bit[i]);
+		}
+	}
+}
+
 void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
 {
 	if(verification_ensemble_non_null(*ens))
@@ -292,24 +360,16 @@ void test()
 	A = initialiser_ensemble();
 	B = initialiser_ensemble();
 
-	for(unsigned int i = 0; i < 3; i++){
-		printf("[%d] : ", i);
-		afficher_liste(A->bit[i], "A");
-	}
-	printf("\n");
-
-	for(unsigned int i = 0; i < 3; i++){
-		printf("[%d] : ", i);
-		afficher_liste(B->bit[i], "B");
-	}
-	printf("\n");
+	
+	afficher_ensemble_complet(A, "A");
+	afficher_ensemble_complet(B, "A");
 
     LISTE* C = initialiser_liste();
     
     printf("Avant ajout des elements.\n");
-    afficher_liste(A->bit[0], "A");
-    afficher_liste(B->bit[0], "B");
-    afficher_liste(C, "C");
+    afficher_liste_complete(A->bit[0], "A");
+    afficher_liste_complete(B->bit[0], "B");
+    afficher_liste_complete(C, "C");
     
     ELEMENT* e1 = initialiser_element(12);
     ELEMENT* e2 = initialiser_element(79);
@@ -324,18 +384,18 @@ void test()
     ajouter_element(e5, &B, 0);
 
     printf("Apres ajout des elements.\n");
-    afficher_liste(A->bit[0], "A");
-    afficher_liste(B->bit[0], "B");
-    afficher_liste(C, "C");
+    afficher_liste_complete(A->bit[0], "A");
+    afficher_liste_complete(B->bit[0], "B");
+    afficher_liste_complete(C, "C");
 
     ELEMENT* ea = retourner_element(&A, 0);
     ELEMENT* eb = retourner_element(&B, 0);
     ELEMENT* ec = retourner_element_liste(&C);
 
     printf("Apres retour du premier element.\n");
-    afficher_liste(A->bit[0], "A");
-    afficher_liste(B->bit[0], "B");
-    afficher_liste(C, "C");
+    afficher_liste_complete(A->bit[0], "A");
+    afficher_liste_complete(B->bit[0], "B");
+    afficher_liste_complete(C, "C");
     printf("Premier element retourne.\n");
     afficher_element(ea, "A");
     afficher_element(eb, "B");
@@ -345,7 +405,7 @@ void test()
     supprimer_liste(&C, "C");
 
     printf("Apres suppression des listes.\n");
-    afficher_liste(C, "C");
+    afficher_liste_complete(C, "C");
     afficher_element(ea, "A");
     afficher_element(eb, "B");
     afficher_element(ec, "C");

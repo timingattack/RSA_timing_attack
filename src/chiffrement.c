@@ -371,6 +371,9 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
          ajouter_element(elem, &A, target_bit);
       else
          ajouter_element(elem, &B, target_bit);
+
+      calculer_temps_moyen(&A);
+      calculer_temps_moyen(&B);
    }
    //}
    //###########################################################################//
@@ -396,7 +399,7 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    for(k = taille; k > 0; k--)
    {
       //###########################-TIMING ATTACK-#################################//
-      target_bit = k;
+      target_bit = k-1;
       //###########################################################################//
 
       Montgomery_product(v, x_bar, x_bar, n, x_bar, N_SIZE); // square 
