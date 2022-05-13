@@ -1,8 +1,7 @@
 #ifndef _TIMING_ATTACK_H_
 #define _TIMING_ATTACK_H_
 
-#include <errno.h>
-#include "temps.h"
+#define EPSILON 3e-6	//borne de répartition des mesures
 
 typedef struct element {
 	double temps;
@@ -42,8 +41,7 @@ void afficher_ensemble_global(ENSEMBLE_G* eg, const char* nom);
 //Variables globales
 extern ENSEMBLE_G* A;
 extern ENSEMBLE_G* B;
-extern unsigned int bit_cible;					//le bit ciblé lors du timing attack
-extern unsigned int bit_position;				//le bit courant lors du timing attack
+extern unsigned int target_bit;					//le bit mesuré lors du timing attack
 extern unsigned int TIMING_ATTACK_CONFIRMED;	//0 = désactive le timing attack, 1 = active le timing attack
 
 //Fonctions pour les variables globales
