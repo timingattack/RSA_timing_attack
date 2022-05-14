@@ -10,6 +10,7 @@
 //Initialisation des variables globales par défaut
 ENSEMBLE* A = NULL;
 ENSEMBLE* B = NULL;
+TAB* T = NULL;
 unsigned int target_bit = 0;
 unsigned int TIMING_ATTACK_CONFIRMED = 0;
 
@@ -18,6 +19,7 @@ void initialiser_variables_globales_timing_attack()
 {
     A = initialiser_ensemble();
     B = initialiser_ensemble();
+    T = initialiser_tableau();
 }
 
 ELEMENT* initialiser_element(const double temps)
@@ -62,6 +64,7 @@ LISTE* initialiser_liste()
 	liste->taille = 0;
 	liste->temps_moyen = 0.0;
 	liste->temps_total = 0.0;
+	liste->difference_temps_moyen = 0.0;
 
 	return liste;
 }
@@ -222,7 +225,7 @@ ENSEMBLE* initialiser_ensemble()
 		exit(13);
 	}
 
-	for(i = 0; i < n_size; i++)
+	for(i = 0; i < n_size - 1; i++)
 	{
 		ens->bit[i] = initialiser_liste();
 	}
@@ -245,7 +248,7 @@ void afficher_ensemble_complet(ENSEMBLE* ens, const char* nom)
 	unsigned int i = 0;
 	if(verification_ensemble_non_null(ens))
 	{
-		for(i = 0; i < n_size; i++)
+		for(i = 0; i < n_size - 1; i++)
 		{
 			if(verification_liste_non_null(ens->bit[i]))
 			{
@@ -275,7 +278,7 @@ void afficher_ensemble_simple(ENSEMBLE* ens, const char* nom)
 	unsigned int i = 0;
 	if(verification_ensemble_non_null(ens))
 	{
-		for(i = 0; i < n_size; i++)
+		for(i = 0; i < n_size - 1; i++)
 		{
 			if(verification_liste_non_null(ens->bit[i]))
 			{
@@ -331,9 +334,44 @@ void calculer_temps_moyen(ENSEMBLE** ens)
 	unsigned int i;
 	if(verification_ensemble_non_null(*ens))
 	{
-		for(i = 0; i < n_size; i++)
+		for(i = 0; i < n_size - 1; i++)
 		{
 			calculer_temps_moyen_liste(&(*ens)->bit[i]);
+		}
+	}
+}
+
+static inline void valeur_absolue_double(double* valeur)
+{
+	if(*valeur < 0)
+		*valeur *= -1; 
+}
+
+void calculer_difference_temps_moyen(ENSEMBLE** a, ENSEMBLE** b)
+{
+	unsigned int i;
+	double difference;
+	if(verification_ensemble_non_null(*a) && verification_ensemble_non_null(*b))
+	{
+		for(i = 0; i < n_size - 1; i++)
+		{
+			//Tb - Ta
+			difference = (*b)->bit[i]->temps_moyen - (*a)->bit[i]->temps_moyen;
+			//|Tb - Ta|
+			valeur_absolue_double(&difference);
+			
+			(*a)->bit[i]->difference_temps_moyen = difference;
+			(*b)->bit[i]->difference_temps_moyen = difference;
+			
+			if(difference <= EPSILON)	// EPSILON = marge d'erreur 1e-6
+			{
+				T->difference[i] = difference;
+				T->bit_value[i] = 1;	//bit i = 1
+			} else if( 1/*|Tb - Ta| converge vers |β - α| */)	//A CALCULER !
+			{
+				T->difference[i] = difference;
+				T->bit_value[i] = 0;	//bit i = 0
+			}
 		}
 	}
 }
@@ -344,7 +382,7 @@ void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
 	{
 		unsigned int i = 0;
 		
-		for(i = 0; i > n_size; i++)
+		for(i = 0; i > n_size - 1; i++)
 		{
 			supprimer_liste(&(*ens)->bit[i], nom);
 		}
@@ -352,6 +390,65 @@ void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
 	}
 	free(*ens);
 	printf("\t\tL'ensemble %s a ete supprimee.\n\n", nom);
+}
+
+TAB* initialiser_tableau()
+{
+	unsigned int i;
+	TAB* tab = malloc(sizeof(TAB));	
+	
+	if(!tab)
+	{
+		fprintf(stderr, "Erreur lors de l'allocation de la map.\n");
+		exit(14);
+	}
+
+	tab->difference = malloc(sizeof(double) * n_size - 1);
+
+	if(!tab->difference)
+	{
+		fprintf(stderr, "Erreur lors de l'allocation de la map.\n");
+		exit(15);
+	}
+
+	tab->bit_value = malloc(sizeof(unsigned int) * n_size - 1);
+
+	if(!tab->bit_value)
+	{
+		fprintf(stderr, "Erreur lors de l'allocation de la map.\n");
+		exit(16);
+	}
+
+	for(i = 0; i < n_size - 1; i++)
+	{
+		tab->difference[i] = -1.0;
+		tab->bit_value[i] = 1;	//hypothèse de base
+	}
+	
+	return tab;
+}
+
+void supprimer_tableau(TAB** tab)
+{
+	printf("supprimer_tableau\n");
+	if(*tab && (*tab)->bit_value && (*tab)->bit_value)
+	{	
+		free((*tab)->difference);
+		free((*tab)->bit_value);
+		*tab = NULL;
+	}
+	free(*tab);
+	printf("\t\tLe tableau a ete supprimee.\n\n");
+}
+
+void afficher_tableau_T()
+{
+	unsigned int i;
+	printf("T :\n");
+	for(i = 0; i < n_size - 1; i++)
+	{
+		printf("\tbit %d\n\tdifference : %f\n\tvaleur du bit : %u\n\n", i, T->difference[i], T->bit_value[i]);
+	}
 }
 
 void test()

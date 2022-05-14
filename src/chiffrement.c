@@ -367,13 +367,15 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
       
       /*if(in_if)
          afficher_element(elem, "elem");*/
-      if(elem->temps >= EPSILON)
+      if(elem->temps < LIMITE)
          ajouter_element(elem, &A, target_bit);
       else
          ajouter_element(elem, &B, target_bit);
 
-      calculer_temps_moyen(&A);
-      calculer_temps_moyen(&B);
+      calculer_temps_moyen(&A);  //calcul Ta
+      calculer_temps_moyen(&B);  //calcul Tb
+
+      calculer_difference_temps_moyen(&A, &B);  //met le résultat dans le tableau T
    }
    //}
    //###########################################################################//
@@ -399,7 +401,11 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    for(k = taille; k > 0; k--)
    {
       //###########################-TIMING ATTACK-#################################//
-      target_bit = k-1;
+      if(k <= taille - 1)  //on commence a dk-2
+      {
+         TIMING_ATTACK_CONFIRMED = 1;  //active le timing attack
+         target_bit = k - 1;
+      }
       //###########################################################################//
 
       Montgomery_product(v, x_bar, x_bar, n, x_bar, N_SIZE); // square 
@@ -413,7 +419,7 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    }
 
    TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
-   
+   printf("apres attaque\n");
    Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre
 
    mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);

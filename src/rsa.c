@@ -264,8 +264,6 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
             //vérification de s
             verification_signature(s, e, n, hm);
-
-             TIMING_ATTACK_CONFIRMED = 1;  //active le timing attack
             
             //dechifrement de m
             if(mode == '1')
@@ -282,7 +280,9 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
         afficher_ensemble_simple(A, "A");
         printf("\n");
-        //afficher_ensemble_simple(B, "B");
+        afficher_ensemble_simple(B, "B");
+
+        afficher_tableau_T();
 
         //numero_iteration = iteration;
 
@@ -297,6 +297,8 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //désallocation des ensembles A et B
     supprimer_ensemble(&A, "A");
     supprimer_ensemble(&B, "B");
+    //désallocation du tableau T
+    supprimer_tableau(&T);
 
     //############################-TIMING ATTACK-################################//
 
