@@ -1,9 +1,8 @@
 #ifndef _TEMPS_H_
 #define _TEMPS_H_
-
-#define _GNU_SOURCE	//fix warning implicit declaration
 #include <sys/time.h>
 #include <time.h>
+#define _GNU_SOURCE	//fix warning implicit declaration
 
 struct timespec;	//fix warning scope
 

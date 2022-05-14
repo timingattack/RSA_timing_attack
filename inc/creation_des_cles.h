@@ -19,11 +19,12 @@ void generer_exposant_public(mpz_t e);
 void phi(const mpz_t p, const mpz_t q, mpz_t phi);
 void generer_exposant_privee(const mpz_t e, const mpz_t phi, mpz_t d);
 
-//Fonctions de clé
+//Fonctions mpz
 void affichage_binaire_mpz(const mpz_t d);
 
 //Variables globales
 extern unsigned int prime_size;
 extern unsigned int n_size;
+extern unsigned int d_size;
 
 #endif /*__CREATION_DES_CLES__*/
