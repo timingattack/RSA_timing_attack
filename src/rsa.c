@@ -160,8 +160,7 @@ void run()
 
     nombre_iteration = atoi(iteration);
 
-    //for(i = 0; i < nombre_iteration; i++)
-        run_rsa(m, nombre_iteration);
+    run_rsa(m, nombre_iteration);
 }
 
 void run_rsa(const char mode, unsigned long int numero_iteration)
@@ -174,8 +173,9 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //----------------------------------------------------
     
     //unsigned int i;
+    unsigned int taille;
     unsigned long int iteration = numero_iteration;
-    mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout;
+    mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout, d_secret;
     mpz_init(m);        //clair
     mpz_init(e);        //exposant publique e : 1 < e < phi(n)
     mpz_init(p);        //nombre premier, premier facteur de n
@@ -191,6 +191,7 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     mpz_init(u);
     mpz_init(v);
     mpz_init(pgcd_bezout);
+    mpz_init(d_secret);
 
     printf("chiffrement n°%lu\n", iteration - numero_iteration + 1);
     //message clair aléatoire
@@ -221,87 +222,86 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     generer_exposant_privee(e, phi_n, d);
     gmp_printf("\nexposant privee d : %Zd\n", d);
 
-    unsigned int taille = mpz_sizeinbase(d, 2); /**/
-
-    //###########################-TIMING ATTACK-#################################//
-
+    //initialise A, B, T
     initialiser_variables_globales_timing_attack();
 
-    //for(bit_cible = n_size; bit_cible > 0; bit_cible--)     //le bit ciblé lors du timing attack
-    //{
-        while(numero_iteration)
+    while(numero_iteration)
+    {
+        if(iteration != numero_iteration)
         {
-            if(iteration != numero_iteration)
-            {
-                printf("chiffrement n°%lu\n", iteration - numero_iteration + 1);
-                mpz_set_ui(m, (unsigned long int) rand());  //génération d'un nouveau message aléatoire
-                gmp_printf("message d'origine : %Z0X\n", m);
-                mpz_set(s, m);
-                mpz_set(hm, m);
-                hash(hm);
-                mpz_set(pkcs_sgn, hm);
-            }
-
-            if(mode == '2')
-            {
-                //générer R
-                generer_R_montgomery(r);
-                //bezout
-                bezout(r, n, u, v, pgcd_bezout);
-                //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)\n\n", r, u, n, v);
-            }
-
-            //chiffrement de m
-            if(mode == '1')
-                chiffrement_RSA(m, e, n, c);
-            else
-                chiffrement_RSA_montgomery(m, e, n, c, v, n_size);
-            gmp_printf("chiffré : %Z0X\n", c);
-
-            //signature de m
-            signature(pkcs_sgn, d, n, s);
-            //gmp_printf("\nsignature : %Z0X\n", s);
-
-            //vérification de s
-            verification_signature(s, e, n, hm);
-
-            TIMING_ATTACK_CONFIRMED = 1;   //active le timing attack
-            
-            //dechifrement de m
-            if(mode == '1')
-                dechiffrement_RSA(c, d, n, m);
-            else
-                dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
-            gmp_printf("message déchiffré : %Z0X\n", m);
-            
-            numero_iteration--;
-            printf("\n");
+            printf("chiffrement n°%lu\n", iteration - numero_iteration + 1);
+            mpz_set_ui(m, (unsigned long int) rand());  //génération d'un nouveau message aléatoire
+            gmp_printf("message d'origine : %Z0X\n", m);
+            mpz_set(s, m);
+            mpz_set(hm, m);
+            hash(hm);
+            mpz_set(pkcs_sgn, hm);
         }
 
-        afficher_ensemble_simple(A, "A");
+        if(mode == '2')
+        {
+            //générer R
+            generer_R_montgomery(r);
+            //bezout
+            bezout(r, n, u, v, pgcd_bezout);
+            //gmp_printf("R(%Zd) * v(%Zd) + N(%Zd) * u(%Zd)\n\n", r, u, n, v);
+        }
+
+        //chiffrement de m
+        if(mode == '1')
+            chiffrement_RSA(m, e, n, c);
+        else
+            chiffrement_RSA_montgomery(m, e, n, c, v, n_size);
+        gmp_printf("chiffré : %Z0X\n", c);
+
+        //signature de m
+        signature(pkcs_sgn, d, n, s);
+        //gmp_printf("\nsignature : %Z0X\n", s);
+
+        //vérification de s
+        verification_signature(s, e, n, hm);
+
+        DECRYPT = 1;
+
+        //dechifrement de m
+        if(mode == '1')
+            dechiffrement_RSA(c, d, n, m);
+        else
+            dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
+        gmp_printf("message déchiffré : %Z0X\n", m);
+        
+        DECRYPT = 0;
+
+        numero_iteration--;
         printf("\n");
-        afficher_ensemble_simple(B, "B");
+    }
 
-        afficher_tableau_T();
+    //afficher_ensemble_simple(A, "A");
+    //afficher_ensemble_simple(B, "B");
+    //printf("\n");
+    //afficher_tableau_T();
 
-        //numero_iteration = iteration;
-
-        printf("\n\n\n");
-    //}
-
-    printf("taille de d : %u\n", taille);
-    affichage_binaire_mpz(d);
     printf("taille de n : %u\n", n_size);
+    printf("taille de d : %u\n", d_size);
+    affichage_binaire_mpz(d);
+
+    reconstituer_d(d_secret);
+    taille = (unsigned int) mpz_sizeinbase(d_secret, 2);
+    printf("taille de d secret : %u\n", taille);
+    affichage_binaire_mpz(d_secret);
+
     gmp_printf("\nd : %Zd\n", d);
+    gmp_printf("\nd secret : %Zd\n", d_secret);
     printf("\n");
+    gmp_printf("message clair : %Z0X\n", m);
+    dechiffrement_RSA_montgomery(c, d_secret, n, m, v, n_size);
+    gmp_printf("message déchiffré : %Z0X\n", m);
 
     //désallocation des ensembles A et B
     supprimer_ensemble(&A, "A");
     supprimer_ensemble(&B, "B");
     //désallocation du tableau T
     supprimer_tableau(&T);
-
-    //############################-TIMING ATTACK-################################//
 
     mpz_clear(m);
     mpz_clear(e);
@@ -318,8 +318,12 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     mpz_clear(u);
     mpz_clear(v);
     mpz_clear(pgcd_bezout);
+    mpz_clear(d_secret);
 
     //-----------------------------------FIN_CHRONO-----------------------------------------
     fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);
+    afficher_temps_cpu(temps_cpu_total);
+    afficher_temps_reel(temps_reel_total);
+    //--------------------------------------------------------------------------------------
     printf("\n");
 }

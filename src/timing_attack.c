@@ -3,9 +3,10 @@
 #include <stdbool.h>
 #include <math.h>
 #include <string.h>
+#include <gmp.h>
 #include "temps.h"
 #include "timing_attack.h"
-#include "creation_des_cles.h" 		//pour n_size
+#include "creation_des_cles.h"
 
 //Initialisation des variables globales par défaut
 ENSEMBLE* A = NULL;
@@ -13,6 +14,7 @@ ENSEMBLE* B = NULL;
 TAB* T = NULL;
 unsigned int target_bit = 0;
 unsigned int TIMING_ATTACK_CONFIRMED = 0;
+unsigned int DECRYPT = 0;
 
 //Initialise les variables globales pour le timing attack
 void initialiser_variables_globales_timing_attack()
@@ -69,7 +71,8 @@ LISTE* initialiser_liste()
 	return liste;
 }
 
-static bool verification_liste_non_null(const LISTE* liste)	//vérifie si une liste existe
+//vérifie si une liste existe (≠ NULL)
+static bool verification_liste_non_null(const LISTE* liste)
 {
 	if(!liste)
 		return 0;
@@ -118,7 +121,7 @@ void afficher_liste_simple(const LISTE* liste, const char* nom)
 			return;
 		}
 		
-		printf("\n\ttaille : %lu\n\ttemps moyen %f\n\ttemps total : %.6f\n\n", liste->taille, liste->temps_moyen, liste->temps_total);
+		printf("\n\ttaille : %lu\n\ttemps moyen %.9f\n\ttemps total : %.6f\n\n", liste->taille, liste->temps_moyen, liste->temps_total);
 		return;
 	}
 	fprintf(stderr,"\t\tLa liste %s n'existe pas.\n\n", nom);
@@ -130,18 +133,19 @@ void ajouter_element_liste(ELEMENT* elem, LISTE** liste)
 	{
 		if((*liste)->taille == 0)
 		{
-			(*liste)->elem = elem;			//le premier élément
-			(*liste)->fin = (*liste)->elem;	//le premier élément est aussi le dernier
+			(*liste)->elem = elem;
+			(*liste)->fin = (*liste)->elem;
 		} else {
-			(*liste)->fin->suiv = elem;		//l'élément suivant après l'avant dernier élément
-			(*liste)->fin = elem;			//le dernier élément
+			(*liste)->fin->suiv = elem;
+			(*liste)->fin = elem;
 		}
 		(*liste)->taille++;
 		(*liste)->temps_total += elem->temps; 
 	}
 }
 
-ELEMENT* retourner_element_liste(LISTE** liste)	//retourne le premier élément de la liste
+//retourne le premier élément de la liste
+ELEMENT* retourner_element_liste(LISTE** liste)	
 {
 	if(verification_liste_non_null(*liste))
 	{
@@ -217,7 +221,7 @@ ENSEMBLE* initialiser_ensemble()
 		exit(12);
 	}
 
-	ens->bit = malloc(sizeof(LISTE) * n_size);
+	ens->bit = malloc(sizeof(LISTE) * d_size - 1);
 	
 	if(!ens->bit)
 	{
@@ -225,7 +229,7 @@ ENSEMBLE* initialiser_ensemble()
 		exit(13);
 	}
 
-	for(i = 0; i < n_size - 1; i++)
+	for(i = 0; i < d_size - 1; i++)
 	{
 		ens->bit[i] = initialiser_liste();
 	}
@@ -233,7 +237,8 @@ ENSEMBLE* initialiser_ensemble()
 	return ens;
 }
 
-static bool verification_ensemble_non_null(ENSEMBLE* ens)	//vérifie si un ensemble global existe
+//vérifie si l'ensemble existe (≠ NULL)
+static bool verification_ensemble_non_null(ENSEMBLE* ens)
 {
 	if(!ens)
 	{
@@ -243,12 +248,13 @@ static bool verification_ensemble_non_null(ENSEMBLE* ens)	//vérifie si un ensem
 	return 1;
 }
 
+//affiche l'ensemble et tous ses éléments
 void afficher_ensemble_complet(ENSEMBLE* ens, const char* nom)
 {
 	unsigned int i = 0;
 	if(verification_ensemble_non_null(ens))
 	{
-		for(i = 0; i < n_size - 1; i++)
+		for(i = 0; i < d_size - 1; i++)
 		{
 			if(verification_liste_non_null(ens->bit[i]))
 			{
@@ -273,12 +279,13 @@ void afficher_ensemble_complet(ENSEMBLE* ens, const char* nom)
 	}
 }
 
+//affiche les variables de l'ensemble
 void afficher_ensemble_simple(ENSEMBLE* ens, const char* nom)
 {
 	unsigned int i = 0;
 	if(verification_ensemble_non_null(ens))
 	{
-		for(i = 0; i < n_size - 1; i++)
+		for(i = 0; i < d_size - 1; i++)
 		{
 			if(verification_liste_non_null(ens->bit[i]))
 			{
@@ -315,6 +322,7 @@ void ajouter_element(ELEMENT* elem, ENSEMBLE** ens, const unsigned int i)
 	}
 }
 
+// retourne le premier élément de la liste à l'indice du tableau i
 ELEMENT* retourner_element(ENSEMBLE** ens, const unsigned int i)
 {
 	if(verification_ensemble_non_null(*ens))
@@ -334,7 +342,7 @@ void calculer_temps_moyen(ENSEMBLE** ens)
 	unsigned int i;
 	if(verification_ensemble_non_null(*ens))
 	{
-		for(i = 0; i < n_size - 1; i++)
+		for(i = 0; i < d_size - 1; i++)
 		{
 			calculer_temps_moyen_liste(&(*ens)->bit[i]);
 		}
@@ -350,27 +358,31 @@ static inline void valeur_absolue_double(double* valeur)
 void calculer_difference_temps_moyen(ENSEMBLE** a, ENSEMBLE** b)
 {
 	unsigned int i;
-	double difference, delta = 0;
+	double difference, delta;
 	if(verification_ensemble_non_null(*a) && verification_ensemble_non_null(*b))
 	{
-		for(i = 0; i < n_size - 1; i++)	//le bit
+		for(i = 0; i < d_size - 1; i++)	//le bit
 		{
-			//Tb - Ta
-			difference = (*b)->bit[i]->temps_moyen - (*a)->bit[i]->temps_moyen;
-			//|Tb - Ta|
-			valeur_absolue_double(&difference);
-
-			(*a)->bit[i]->difference_temps_moyen = difference;
-			(*b)->bit[i]->difference_temps_moyen = difference;
-			
-			if(difference < delta)
+			if((*a)->bit[i]->taille != 0 && (*b)->bit[i]->taille != 0)	//si on a mesuré un temps dans A et B
 			{
-				T->difference[i] = difference;
-				T->bit_value[i] = 1;	//bit i = 1
-			} else
-			{	
-				T->difference[i] = difference;
-				T->bit_value[i] = 0;	//bit i = 0
+				//Tb - Ta
+				difference = (*b)->bit[i]->temps_moyen - (*a)->bit[i]->temps_moyen;
+				//|Tb - Ta|
+				valeur_absolue_double(&difference);
+
+				(*a)->bit[i]->difference_temps_moyen = difference;
+				(*b)->bit[i]->difference_temps_moyen = difference;
+
+				//β - α
+				delta = (*b)->bit[i]->temps_total - (*a)->bit[i]->temps_total;
+				//|β - α|
+				valeur_absolue_double(&delta);
+
+				if(difference <= delta)	//si |Tb - Ta| converge vers |β - α|
+				{
+					T->difference[i] = difference;
+					T->bit_value[i] = 1;	//bit i = 1
+				}
 			}
 		}
 	}
@@ -382,7 +394,7 @@ void supprimer_ensemble(ENSEMBLE** ens, const char* nom)
 	{
 		unsigned int i = 0;
 		
-		for(i = 0; i > n_size - 1; i++)
+		for(i = 0; i > d_size - 1; i++)
 		{
 			supprimer_liste(&(*ens)->bit[i], nom);
 		}
@@ -403,7 +415,7 @@ TAB* initialiser_tableau()
 		exit(14);
 	}
 
-	tab->difference = malloc(sizeof(double) * n_size - 1);
+	tab->difference = malloc(sizeof(double) * n_size);
 
 	if(!tab->difference)
 	{
@@ -411,7 +423,7 @@ TAB* initialiser_tableau()
 		exit(15);
 	}
 
-	tab->bit_value = malloc(sizeof(unsigned int) * n_size - 1);
+	tab->bit_value = malloc(sizeof(unsigned int) * n_size);
 
 	if(!tab->bit_value)
 	{
@@ -419,11 +431,13 @@ TAB* initialiser_tableau()
 		exit(16);
 	}
 
-	for(i = 0; i < n_size - 1; i++)
+	for(i = 0; i < d_size - 1; i++)
 	{
 		tab->difference[i] = 0.0;
-		tab->bit_value[i] = 1;	//hypothèse de base
+		tab->bit_value[i] = 0.0;
 	}
+	tab->difference[i] = -1;	//-1 car la différence ne sera jamais calculé
+	tab->bit_value[i] = 1;		//bit connu dk-1 = 1
 	
 	return tab;
 }
@@ -444,69 +458,36 @@ void afficher_tableau_T()
 {
 	unsigned int i;
 	printf("T :\n");
-	for(i = 0; i < n_size - 1; i++)
+	for(i = 0; i < d_size; i++)
 	{
 		printf("\tbit %d\n\tdifference : %.9f\n\tvaleur du bit : %u\n\n", i+1, T->difference[i], T->bit_value[i]);
 	}
 }
 
-void test()
+void reconstituer_d(mpz_t resultat)
 {
-	n_size = 3;	//nombre d'ensemble (liste) dans A et B
-	A = initialiser_ensemble();
-	B = initialiser_ensemble();
+	unsigned int i;
+	char* str_d = malloc(sizeof(char) * d_size + 1);
+	mpz_t d_secret;
+	mpz_init(d_secret);
 
-	
-	afficher_ensemble_complet(A, "A");
-	afficher_ensemble_complet(B, "A");
+	strncat(str_d, "1", 1);		//dk-1 = 1
+	for(i = d_size - 2; i > 0; i--)	//pour dk - i avec 1 < i < k-1
+	{
+		if(T->bit_value[i] == 0)
+		{
+			strncat(str_d, "0", 1);
 
-    LISTE* C = initialiser_liste();
-    
-    printf("Avant ajout des elements.\n");
-    afficher_liste_complete(A->bit[0], "A");
-    afficher_liste_complete(B->bit[0], "B");
-    afficher_liste_complete(C, "C");
-    
-    ELEMENT* e1 = initialiser_element(12);
-    ELEMENT* e2 = initialiser_element(79);
-    ELEMENT* e3 = initialiser_element(3);
-    ELEMENT* e4 = initialiser_element(56);
-    ELEMENT* e5 = initialiser_element(93);
-    
-    ajouter_element(e1, &A, 0);
-    ajouter_element(e2, &B, 0);
-    ajouter_element(e3, &B, 0);
-    ajouter_element(e4, &A, 0);
-    ajouter_element(e5, &B, 0);
+		} else if(T->bit_value[i] == 1)
+		{
+			strncat(str_d, "1", 1);
+		}
+	}
+	strncat(str_d, "1", 1);		//d0 = 1
+	mpz_set_str(d_secret, str_d, 2);
 
-    printf("Apres ajout des elements.\n");
-    afficher_liste_complete(A->bit[0], "A");
-    afficher_liste_complete(B->bit[0], "B");
-    afficher_liste_complete(C, "C");
+	mpz_set(resultat, d_secret);	//sauve garde la clé secrète
 
-    ELEMENT* ea = retourner_element(&A, 0);
-    ELEMENT* eb = retourner_element(&B, 0);
-    ELEMENT* ec = retourner_element_liste(&C);
-
-    printf("Apres retour du premier element.\n");
-    afficher_liste_complete(A->bit[0], "A");
-    afficher_liste_complete(B->bit[0], "B");
-    afficher_liste_complete(C, "C");
-    printf("Premier element retourne.\n");
-    afficher_element(ea, "A");
-    afficher_element(eb, "B");
-    afficher_element(ec, "C");
-    
-    printf("Suppression des listes.\n");
-    supprimer_liste(&C, "C");
-
-    printf("Apres suppression des listes.\n");
-    afficher_liste_complete(C, "C");
-    afficher_element(ea, "A");
-    afficher_element(eb, "B");
-    afficher_element(ec, "C");
-
-    printf("Suppression des ensembles.\n");
-    supprimer_ensemble(&A, "A");
-    supprimer_ensemble(&B, "B");
+	free(str_d);
+	mpz_clear(d_secret);
 }

@@ -4,7 +4,8 @@
 #include <gmp.h>
 #include <stdbool.h>
 #include <math.h>
-#include <unistd.h>        //pour faciliter le timing attack (à faire: à retirer lorsque le timing attack sera fini)
+#include <unistd.h>
+#include <time.h>
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -240,6 +241,7 @@ void padding_signature(mpz_t m)    //m est déjà hashé
          mpz_set_str(m, random_number, 16);
 
          //gmp_printf("PKCS#1 v1.5 signé: %Z0X\n", m);
+
          break;
       }
       //1 octet ØØ
@@ -334,55 +336,46 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    mpz_tdiv_q_2exp(t,t, N_SIZE); // t = ( z + m * n ) / r
 
    //###########################-TIMING ATTACK-#################################//
-   double tta = 0.0, tta_cpu = 0.0;
-   clock_t tta_cpu_deb = 0, tta_cpu_fin = 0;
-   struct timespec tta_deb = {0,0}, tta_fin = {0,0};
+      double tta = 0.0, tta_cpu = 0.0;
+      clock_t tta_cpu_deb = 0, tta_cpu_fin = 0;
+      struct timespec tta_deb = {0,0}, tta_fin = {0,0};
 
-   struct timespec time_if = {0,2000};
+      struct timespec time_if = {0,2000}; //2 micro secondes 
+      //printf("temps = %ld\n", time_if.tv_nsec);
 
-   if(TIMING_ATTACK_CONFIRMED)
-      debut_chrono(&tta_cpu_deb,&tta_deb);
-      //debut_chrono_timing_attack(&tta_deb);
+      if(TIMING_ATTACK_CONFIRMED && DECRYPT)
+         debut_chrono(&tta_cpu_deb,&tta_deb);
    //###########################################################################//
-   
-   //int in_if = 0;
    
    if((mpz_cmp(t, n) == 0) || (mpz_cmp(t,n) > 0))
    {
       mpz_sub(t, t, n); // t = t - n
 
-      nanosleep(&time_if, NULL);
-      //in_if = 1;
+      nanosleep(&time_if, NULL); //attend 2 micro secondes
    }
-   //printf("bit_position = %u\n", bit_position);
+
    //###########################-TIMING ATTACK-#################################//
-   //if(bit_cible == bit_position)
-   //{
-   if(TIMING_ATTACK_CONFIRMED)
-   {
-      //printf("target_bit %d\n", target_bit);
-      fin_chrono(&tta_cpu,tta_cpu_deb,tta_cpu_fin,&tta,tta_deb,tta_fin);
-      //printf("\n");
-      
-      //fin_chrono_timing_attack(&tta, tta_deb, tta_fin);
-      
-      ELEMENT* elem = initialiser_element(tta_cpu);
-      
-      /*if(in_if){
-         printf("temps = %ld\n", test.tv_nsec);
-         afficher_element(elem, "elem");
-      }*/
-      if(elem->temps < LIMITE) //si le if n'a pas ete fait et le sleep n'a pas ete fait
-         ajouter_element(elem, &A, target_bit);
-      else
-         ajouter_element(elem, &B, target_bit);
+      if(TIMING_ATTACK_CONFIRMED && DECRYPT)
+      {
+         //printf("target_bit %d\n\n", target_bit);
+         fin_chrono(&tta_cpu,tta_cpu_deb,tta_cpu_fin,&tta,tta_deb,tta_fin);
+         
+         ELEMENT* elem = initialiser_element(tta_cpu);
+         //afficher_element(elem, "elem");
+         
+         if(elem->temps < LIMITE){ //si pas de if et si le nanosleep n'a pas été fait
+            ajouter_element(elem, &A, target_bit);
+         }
+         else{
+            ajouter_element(elem, &B, target_bit);
+         }
 
-      calculer_temps_moyen(&A);  //calcul Ta
-      calculer_temps_moyen(&B);  //calcul Tb
+         calculer_temps_moyen(&A);  //calcul Ta
+         calculer_temps_moyen(&B);  //calcul Tb
 
-      calculer_difference_temps_moyen(&A, &B);  //met le résultat dans le tableau T
-   }
-   //}
+         //met le résultat de la difference dans la variable globale T
+         calculer_difference_temps_moyen(&A, &B);
+      }
    //###########################################################################//
 
    mpz_clear(m);
@@ -405,26 +398,28 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
   
    for(k = taille; k > 0; k--)
    {
-      //###########################-TIMING ATTACK-#################################//
-      if(k <= taille - 1 && TIMING_ATTACK_CONFIRMED)  //on commence a dk-2
-      {
-         target_bit = k - 1;
-      }
-      //###########################################################################//
-
       Montgomery_product(v, x_bar, x_bar, n, x_bar, N_SIZE); // square 
       mpz_tdiv_q_2exp(rshiftr, e, k - 1);
       mpz_and(andr, rshiftr, msk);
 
       if(!(mpz_cmp_ui(andr, 1)))
       {  
-         Montgomery_product(v, a_bar, x_bar, n, x_bar, N_SIZE); // multiply 
+         //###########################-TIMING ATTACK-#################################//
+         TIMING_ATTACK_CONFIRMED = 1;  //active le timing attack
+
+         if(k <= taille - 1 && DECRYPT)  //on commence à dk-2
+            target_bit = k - 1;
+         //###########################################################################//
+         
+         Montgomery_product(v, a_bar, x_bar, n, x_bar, N_SIZE); // multiply
+
+         //###########################-TIMING ATTACK-#################################//
+         TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
+         //###########################################################################//
       }
    }
-
-   TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
- 
-   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre
+   
+   Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); //calcul du chiffré (pour sauvegarder le résultat)
 
    mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
 }

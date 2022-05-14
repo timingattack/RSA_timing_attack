@@ -47,8 +47,6 @@ void fin_chrono(double *ttc, clock_t tdc, clock_t tfc, double *ttr, struct times
 	temps_reel(&tfr);
 	*ttc = (tfc - tdc) * 1e-6;
 	*ttr= (tfr.tv_sec - tdr.tv_sec);
-	//afficher_temps_cpu(ttc);
-	//afficher_temps_reel(ttr);
 }
 
 /*
