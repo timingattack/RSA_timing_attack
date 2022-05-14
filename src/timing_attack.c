@@ -350,25 +350,25 @@ static inline void valeur_absolue_double(double* valeur)
 void calculer_difference_temps_moyen(ENSEMBLE** a, ENSEMBLE** b)
 {
 	unsigned int i;
-	double difference;
+	double difference, delta = 0;
 	if(verification_ensemble_non_null(*a) && verification_ensemble_non_null(*b))
 	{
-		for(i = 0; i < n_size - 1; i++)
+		for(i = 0; i < n_size - 1; i++)	//le bit
 		{
 			//Tb - Ta
 			difference = (*b)->bit[i]->temps_moyen - (*a)->bit[i]->temps_moyen;
 			//|Tb - Ta|
 			valeur_absolue_double(&difference);
-			
+
 			(*a)->bit[i]->difference_temps_moyen = difference;
 			(*b)->bit[i]->difference_temps_moyen = difference;
 			
-			if(difference <= EPSILON)	// EPSILON = marge d'erreur 1e-6
+			if(difference < delta)
 			{
 				T->difference[i] = difference;
 				T->bit_value[i] = 1;	//bit i = 1
-			} else if( 1/*|Tb - Ta| converge vers |β - α| */)	//A CALCULER !
-			{
+			} else
+			{	
 				T->difference[i] = difference;
 				T->bit_value[i] = 0;	//bit i = 0
 			}
@@ -421,7 +421,7 @@ TAB* initialiser_tableau()
 
 	for(i = 0; i < n_size - 1; i++)
 	{
-		tab->difference[i] = -1.0;
+		tab->difference[i] = 0.0;
 		tab->bit_value[i] = 1;	//hypothèse de base
 	}
 	
@@ -430,7 +430,6 @@ TAB* initialiser_tableau()
 
 void supprimer_tableau(TAB** tab)
 {
-	printf("supprimer_tableau\n");
 	if(*tab && (*tab)->bit_value && (*tab)->bit_value)
 	{	
 		free((*tab)->difference);
@@ -447,7 +446,7 @@ void afficher_tableau_T()
 	printf("T :\n");
 	for(i = 0; i < n_size - 1; i++)
 	{
-		printf("\tbit %d\n\tdifference : %f\n\tvaleur du bit : %u\n\n", i, T->difference[i], T->bit_value[i]);
+		printf("\tbit %d\n\tdifference : %.9f\n\tvaleur du bit : %u\n\n", i+1, T->difference[i], T->bit_value[i]);
 	}
 }
 

@@ -264,6 +264,8 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
             //vérification de s
             verification_signature(s, e, n, hm);
+
+            TIMING_ATTACK_CONFIRMED = 1;   //active le timing attack
             
             //dechifrement de m
             if(mode == '1')
@@ -271,8 +273,6 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
             else
                 dechiffrement_RSA_montgomery(c, d, n, m, v, n_size);
             gmp_printf("message déchiffré : %Z0X\n", m);
-
-            //TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
             
             numero_iteration--;
             printf("\n");
@@ -290,6 +290,7 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //}
 
     printf("taille de d : %u\n", taille);
+    affichage_binaire_mpz(d);
     printf("taille de n : %u\n", n_size);
     gmp_printf("\nd : %Zd\n", d);
     printf("\n");

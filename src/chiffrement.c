@@ -338,6 +338,8 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    clock_t tta_cpu_deb = 0, tta_cpu_fin = 0;
    struct timespec tta_deb = {0,0}, tta_fin = {0,0};
 
+   struct timespec time_if = {0,2000};
+
    if(TIMING_ATTACK_CONFIRMED)
       debut_chrono(&tta_cpu_deb,&tta_deb);
       //debut_chrono_timing_attack(&tta_deb);
@@ -349,6 +351,7 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
    {
       mpz_sub(t, t, n); // t = t - n
 
+      nanosleep(&time_if, NULL);
       //in_if = 1;
    }
    //printf("bit_position = %u\n", bit_position);
@@ -365,9 +368,11 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
       
       ELEMENT* elem = initialiser_element(tta_cpu);
       
-      /*if(in_if)
-         afficher_element(elem, "elem");*/
-      if(elem->temps < LIMITE)
+      /*if(in_if){
+         printf("temps = %ld\n", test.tv_nsec);
+         afficher_element(elem, "elem");
+      }*/
+      if(elem->temps < LIMITE) //si le if n'a pas ete fait et le sleep n'a pas ete fait
          ajouter_element(elem, &A, target_bit);
       else
          ajouter_element(elem, &B, target_bit);
@@ -401,9 +406,8 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    for(k = taille; k > 0; k--)
    {
       //###########################-TIMING ATTACK-#################################//
-      if(k <= taille - 1)  //on commence a dk-2
+      if(k <= taille - 1 && TIMING_ATTACK_CONFIRMED)  //on commence a dk-2
       {
-         TIMING_ATTACK_CONFIRMED = 1;  //active le timing attack
          target_bit = k - 1;
       }
       //###########################################################################//
@@ -419,7 +423,7 @@ void Montgomery_Exponentiation_crypt(mpz_t crypt, const mpz_t a, const mpz_t v, 
    }
 
    TIMING_ATTACK_CONFIRMED = 0;  //désactive le timing attack
-   printf("apres attaque\n");
+ 
    Montgomery_product(v, x_bar, un, n, crypt, N_SIZE); // calcul du chiffre
 
    mpz_clears(a_bar, x_bar, rop1, un, rshiftr, andr, msk, NULL);
