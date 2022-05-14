@@ -1,7 +1,7 @@
 #ifndef _TIMING_ATTACK_H_
 #define _TIMING_ATTACK_H_
 
-#define LIMITE 4e-6	//borne de répartition des mesures
+#define LIMITE 2e-6	//borne de répartition des mesures
 #define EPSILON 1e-6
 
 typedef struct element {

@@ -8,18 +8,22 @@
 #define PRIME_MEDIUM_SIZE 1024      //RSA 2048 bits
 #define PRIME_LOW_SIZE 512          //RSA 1024 bits
 
-/*extern*/ unsigned int prime_size;
-/*extern*/ unsigned int n_size;
-
 //Fonctions nombres premiers
 unsigned int pgcd(const unsigned int a, const unsigned int b);
 void generer_npq(mpz_t n, mpz_t p, mpz_t q);
 
-//Fonctions de chiffrement
+//Fonctions de clé de chiffrement
 void generer_exposant_public(mpz_t e);
 
-//Fonctions de déchiffrement
+//Fonctions de clé de déchiffrement
 void phi(const mpz_t p, const mpz_t q, mpz_t phi);
 void generer_exposant_privee(const mpz_t e, const mpz_t phi, mpz_t d);
+
+//Fonctions de clé
+void affichage_binaire_mpz(const mpz_t d);
+
+//Variables globales
+extern unsigned int prime_size;
+extern unsigned int n_size;
 
 #endif /*__CREATION_DES_CLES__*/
