@@ -1,6 +1,10 @@
 # RSA_timing_attack
 un projet TER « Démonstrateur d’attaque temporelle sur le RSA »
 
+Il comporte 2 versions pour la timing attack.
+
+La première qui est dans la racine du projet consiste à effectuer l'attaque sur tout les bits de l'exposant secret d en même temps, la seconde qui se trouve dans le dossier timing_attack_bit_a_bit effectue l'attaque sur l'exposant d bit à bit. Les deux versions marchent sauf que la seconde est beaucoup plus longue en terme d'execution puisqu'elle fait l'attaque sur chaque bit.
+
 # Aides
 pour compiler le RSA :
 ```shell
