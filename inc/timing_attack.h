@@ -2,7 +2,7 @@
 #define _TIMING_ATTACK_H_
 #include <gmp.h>
 
-#define LIMITE 2e-6	//limite de répartition pour les mesures
+#define LIMITE 4e-6	//limite de répartition pour les mesures
 typedef struct element {
 	double temps;
 	struct element* suiv;
