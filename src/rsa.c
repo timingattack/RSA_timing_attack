@@ -322,8 +322,8 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
     //-----------------------------------FIN_CHRONO-----------------------------------------
     fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);
-    afficher_temps_cpu(temps_cpu_total);
-    afficher_temps_reel(temps_reel_total);
+    afficher_temps_cpu(&temps_cpu_total);
+    afficher_temps_reel(&temps_reel_total);
     //--------------------------------------------------------------------------------------
     printf("\n");
 }

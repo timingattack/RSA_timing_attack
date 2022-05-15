@@ -54,8 +54,8 @@ void generer_npq(mpz_t n, mpz_t p, mpz_t q)
         mpz_sub (rop2, p, q);
         //|p - q|
         mpz_abs(rop2, rop2);
-        //|p - q| = 2^51.5 * 2^𝑘/4 ?
-        difference = mpz_cmp(rop2, rop);    //p et q sont bon si |p - q| ≥ 2^51.5 * 2^𝑘/4
+        //p et q sont bon si |p - q| ≥ 2^51.5 * 2^𝑘/4
+        difference = mpz_cmp(rop2, rop);    //pour éviter la factorisation de n par la méthode de Fermat
     }
 
     //si (p ≠ q) ET (p mod e ≠ 1) ET (q mod e ≠ 1) ET (|p - q| ≥ 2^51.5 * 2^𝑘/4)
@@ -142,7 +142,7 @@ void generer_exposant_privee(const mpz_t e, const mpz_t phi_n, mpz_t d)
 
 void affichage_binaire_mpz(const mpz_t d)
 {
-    unsigned int i, d_size;
+    unsigned int i;
     mpz_t msk, rop, tmp_d;
     mpz_init(msk);
     mpz_init(rop);
