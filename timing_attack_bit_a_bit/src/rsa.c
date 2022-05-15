@@ -311,9 +311,10 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
 
     //Vérification de d secret
     printf("vérification de d secret ...\n");
-    gmp_printf("message : %Z0X\n", m);
+    gmp_printf("message clair : %Z0X\n", m);
+    mpz_set(tmp_m, m);
     dechiffrement_RSA_montgomery(c, d_secret, n, m, v, n_size);
-    gmp_printf("message chiffré : %Z0X\n", m);
+    gmp_printf("message déchiffré : %Z0X\n", m);
     
     if(!(mpz_cmp(tmp_m, m)))
     {
