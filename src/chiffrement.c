@@ -340,7 +340,7 @@ void Montgomery_product(const mpz_t v, const mpz_t a_bar, const mpz_t b_bar, con
       clock_t tta_cpu_deb = 0, tta_cpu_fin = 0;
       struct timespec tta_deb = {0,0}, tta_fin = {0,0};
 
-      struct timespec time_if = {0,2000}; //2 micro secondes 
+      struct timespec time_if = {0,4000}; //4 micro secondes 
       //printf("temps = %ld\n", time_if.tv_nsec);
 
       if(TIMING_ATTACK_CONFIRMED && DECRYPT)
