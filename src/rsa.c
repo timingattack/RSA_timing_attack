@@ -280,7 +280,12 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //afficher_ensemble_simple(B, "B");
     //printf("\n");
     //afficher_tableau_T();
-
+    
+    //Affichage de d
+    printf("taille de n : %u\n", n_size);
+    printf("taille de d : %u\n", d_size);
+    affichage_binaire_mpz(d);
+    
     //Affichage de d secret
     reconstituer_d(d_secret);   //reconstitution à l'aide du tableau T
     taille = (unsigned int) mpz_sizeinbase(d_secret, 2);    //taille de d secret
