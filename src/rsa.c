@@ -281,21 +281,32 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //printf("\n");
     //afficher_tableau_T();
 
-    printf("taille de n : %u\n", n_size);
-    printf("taille de d : %u\n", d_size);
-    affichage_binaire_mpz(d);
-
-    reconstituer_d(d_secret);
-    taille = (unsigned int) mpz_sizeinbase(d_secret, 2);
+    //Affichage de d secret
+    reconstituer_d(d_secret);   //reconstitution à l'aide du tableau T
+    taille = (unsigned int) mpz_sizeinbase(d_secret, 2);    //taille de d secret
     printf("taille de d secret : %u\n", taille);
     affichage_binaire_mpz(d_secret);
 
-    gmp_printf("\nd : %Zd\n", d);
-    gmp_printf("\nd secret : %Zd\n", d_secret);
+    //Comparaison entre d et d secret
+    gmp_printf("\nd : %Z0X\n", d);
+    gmp_printf("\nd secret : %Z0X\n", d_secret);
     printf("\n");
-    gmp_printf("message clair : %Z0X\n", m);
+
+    //Vérification de d secret
+    printf("vérification de d secret ...\n");
+    gmp_printf("message clair attendu : %Z0X\n", m);
+    gmp_printf("chiffré : %Z0X\n", c);
+    mpz_set(tmp_m, m);
     dechiffrement_RSA_montgomery(c, d_secret, n, m, v, n_size);
     gmp_printf("message déchiffré : %Z0X\n", m);
+    
+    if(!(mpz_cmp(tmp_m, m)))
+    {
+        printf("d secret est valide.\n");
+    } else {
+        fprintf(stderr,"d secret est invalide.\n");
+        printf("L'attaque temporelle à échoué.\n");
+    }
 
     //désallocation des ensembles A et B
     supprimer_ensemble(&A, "A");
