@@ -1,3 +1,0 @@
-Installation de lzip pour gmplib (si besoin)
-$ chmod u+w /usr/local/share/man/man5
-$ sudo chown -R $(whoami) /usr/local/share/man/man5
