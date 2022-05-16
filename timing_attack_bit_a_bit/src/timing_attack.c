@@ -466,7 +466,8 @@ void reconstituer_d(mpz_t resultat)
 	char* str_d = malloc(sizeof(char) * d_size + 1);
 	mpz_t d_secret;
 	mpz_init(d_secret);
-
+	
+	str_d[0] = '\0';
 	strncat(str_d, "1", 1);		//dk-1 = 1
 	for(i = d_size - 2; i > 0; i--)	//pour dk - i avec 1 < i < k-1
 	{
