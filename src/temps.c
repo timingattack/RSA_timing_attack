@@ -7,7 +7,7 @@
 *	Fonction qui permet de calculer le temps réel.
 */
 void temps_reel(struct timespec *temps_reel_t) {
-	clock_gettime(CLOCK_MONOTONIC_RAW, temps_reel_t);
+	clock_gettime(CLOCK_MONOTONIC, temps_reel_t);
 }
 
 /*
