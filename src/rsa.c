@@ -175,7 +175,7 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     //unsigned int i;
     unsigned int taille;
     unsigned long int iteration = numero_iteration;
-    mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout, d_secret;
+    mpz_t  m, e, p , q, n, c, phi_n, d, pkcs_sgn, s, hm, r, u, v, pgcd_bezout, d_secret, tmp_m;
     mpz_init(m);        //clair
     mpz_init(e);        //exposant publique e : 1 < e < phi(n)
     mpz_init(p);        //nombre premier, premier facteur de n
@@ -335,6 +335,7 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     mpz_clear(v);
     mpz_clear(pgcd_bezout);
     mpz_clear(d_secret);
+    mpz_clear(tmp_m);
 
     //-----------------------------------FIN_CHRONO-----------------------------------------
     fin_chrono(&temps_cpu_total,t_cpu_deb,t_cpu_fin,&temps_reel_total,t_reel_deb,t_reel_fin);
