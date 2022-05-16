@@ -192,6 +192,7 @@ void run_rsa(const char mode, unsigned long int numero_iteration)
     mpz_init(v);
     mpz_init(pgcd_bezout);
     mpz_init(d_secret);
+    mpz_init(tmp_m);
 
     printf("chiffrement n°%lu\n", iteration - numero_iteration + 1);
     //message clair aléatoire
