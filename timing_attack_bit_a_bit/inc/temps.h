@@ -1,5 +1,6 @@
 #ifndef _TEMPS_H_
 #define _TEMPS_H_
+#define _POSIX_C_SOURCE 199309L
 #include <sys/time.h>
 #include <time.h>
 #define _GNU_SOURCE	//fix warning implicit declaration
